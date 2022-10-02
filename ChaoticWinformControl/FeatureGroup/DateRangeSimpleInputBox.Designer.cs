@@ -28,22 +28,29 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.DateInput = new System.Windows.Forms.DateTimePicker();
             this.Option1Box = new System.Windows.Forms.RadioButton();
             this.Option3Box = new System.Windows.Forms.RadioButton();
             this.Option2Box = new System.Windows.Forms.RadioButton();
             this.Option4Box = new System.Windows.Forms.RadioButton();
             this.WorkingCheckBox = new System.Windows.Forms.CheckBox();
+            this.RightMenuContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.SetThisMonthToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RightMenuContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // DateInput
             // 
             this.DateInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.DateInput.Checked = false;
             this.DateInput.Location = new System.Drawing.Point(7, 3);
             this.DateInput.Name = "DateInput";
             this.DateInput.Size = new System.Drawing.Size(131, 21);
             this.DateInput.TabIndex = 0;
+            this.DateInput.ValueChanged += new System.EventHandler(this.DateInput_ValueChanged);
+            this.DateInput.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ChildControl_MouseUp);
             // 
             // Option1Box
             // 
@@ -55,6 +62,8 @@
             this.Option1Box.TabStop = true;
             this.Option1Box.Text = "选项1";
             this.Option1Box.UseVisualStyleBackColor = true;
+            this.Option1Box.CheckedChanged += new System.EventHandler(this.Option1Box_CheckedChanged);
+            this.Option1Box.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ChildControl_MouseUp);
             // 
             // Option3Box
             // 
@@ -66,6 +75,8 @@
             this.Option3Box.TabStop = true;
             this.Option3Box.Text = "选项3";
             this.Option3Box.UseVisualStyleBackColor = true;
+            this.Option3Box.CheckedChanged += new System.EventHandler(this.Option3Box_CheckedChanged);
+            this.Option3Box.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ChildControl_MouseUp);
             // 
             // Option2Box
             // 
@@ -77,6 +88,8 @@
             this.Option2Box.TabStop = true;
             this.Option2Box.Text = "选项2";
             this.Option2Box.UseVisualStyleBackColor = true;
+            this.Option2Box.CheckedChanged += new System.EventHandler(this.Option2Box_CheckedChanged);
+            this.Option2Box.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ChildControl_MouseUp);
             // 
             // Option4Box
             // 
@@ -88,6 +101,8 @@
             this.Option4Box.TabStop = true;
             this.Option4Box.Text = "选项4";
             this.Option4Box.UseVisualStyleBackColor = true;
+            this.Option4Box.CheckedChanged += new System.EventHandler(this.Option4Box_CheckedChanged);
+            this.Option4Box.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ChildControl_MouseUp);
             // 
             // WorkingCheckBox
             // 
@@ -98,6 +113,22 @@
             this.WorkingCheckBox.TabIndex = 5;
             this.WorkingCheckBox.Text = "使用日期范围";
             this.WorkingCheckBox.UseVisualStyleBackColor = true;
+            this.WorkingCheckBox.CheckedChanged += new System.EventHandler(this.WorkingCheckBox_CheckedChanged);
+            this.WorkingCheckBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ChildControl_MouseUp);
+            // 
+            // RightMenuContextMenuStrip
+            // 
+            this.RightMenuContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SetThisMonthToolStripMenuItem});
+            this.RightMenuContextMenuStrip.Name = "RightMenuContextMenuStrip";
+            this.RightMenuContextMenuStrip.Size = new System.Drawing.Size(137, 26);
+            // 
+            // SetThisMonthToolStripMenuItem
+            // 
+            this.SetThisMonthToolStripMenuItem.Name = "SetThisMonthToolStripMenuItem";
+            this.SetThisMonthToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.SetThisMonthToolStripMenuItem.Text = "设为该月份";
+            this.SetThisMonthToolStripMenuItem.Click += new System.EventHandler(this.SetThisMonthToolStripMenuItem_Click);
             // 
             // DateRangeSimpleInputBox
             // 
@@ -111,6 +142,7 @@
             this.Controls.Add(this.DateInput);
             this.Name = "DateRangeSimpleInputBox";
             this.Size = new System.Drawing.Size(304, 49);
+            this.RightMenuContextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -124,5 +156,7 @@
         private System.Windows.Forms.RadioButton Option2Box;
         private System.Windows.Forms.RadioButton Option4Box;
         private System.Windows.Forms.CheckBox WorkingCheckBox;
+        private System.Windows.Forms.ContextMenuStrip RightMenuContextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem SetThisMonthToolStripMenuItem;
     }
 }
