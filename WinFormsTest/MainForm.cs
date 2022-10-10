@@ -1,11 +1,14 @@
 ﻿using ChaoticWinformControl;
 using HarmonyLib;
+using Mono.Cecil;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,7 +37,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.DateRangeInputerTest>();
+            SetTest<Tests.EnumComboBoxTest001>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 
@@ -250,6 +253,221 @@ namespace WinFormsTest
         }
         #endregion
 
+        #region 全局对象
+        protected Dictionary<string, GlobalItem> GlobalItems { get; set; } = new Dictionary<string, GlobalItem>();
+
+        protected void UpdateGlobalList()
+        {
+            GlobalListView.Items.Clear();
+            foreach (string key in GlobalItems.Keys)
+            {
+                GlobalListView.Items.Add(new ListViewItem()
+                {
+                    Text = GlobalItems[key]?.ToString(),
+                    Tag = GlobalItems[key],
+                });
+            }
+        }
+        #region 右键菜单
+        /// <summary>
+        /// 当前右键选择到的全局对象
+        /// </summary>
+        protected GlobalItem? CurrentRightButtonGlobalItem { get; set; } = null;
+
+        private void GlobalListView_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right) return;
+
+            CurrentRightButtonGlobalItem = null;
+
+            ListViewItem listItem = GlobalListView.GetItemAt(e.X, e.Y);
+            if (listItem == null) return;
+
+            if (listItem.Tag is GlobalItem globalItem)
+            {
+                CurrentRightButtonGlobalItem = globalItem;
+                // 隐藏所有可选菜单项
+                foreach (ToolStripItem item in GlobalItemRightMenuMenuStrip.Items)
+                {
+                    item.Visible = false;
+                }
+
+                if (globalItem.DataType == typeof(bool))
+                {
+                    Value_Bool_ToolStripMenuItem.Visible = true;
+                    Value_Bool_ToolStripMenuItem.Text = $"切换为: {!(bool)globalItem.Data!}";
+                }
+                else
+                {
+                    NoSupport_ToolStripMenuItem.Visible = true;
+                }
+                GlobalItemRightMenuMenuStrip.Show(GlobalListView, e.Location);
+            }
+        }
+
+        #region 菜单项事件
+        private void Value_Bool_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (CurrentRightButtonGlobalItem == null) return;
+
+            CurrentRightButtonGlobalItem.SetValue(!(bool)CurrentRightButtonGlobalItem.Data!);
+        }
+        #endregion
+
+
+        #endregion
+
+        public class GlobalItem
+        {
+            /// <summary>
+            /// 全局对象的名称
+            /// </summary>
+            public string? Name { get; set; }
+            /// <summary>
+            /// 全局对象的数据
+            /// </summary>
+            public object? Data { get; private set; }
+            /// <summary>
+            /// 数据类型
+            /// </summary>
+            public Type? DataType { get; set; }
+
+            public virtual void SetValue(object? newValue) 
+            {
+                Data = newValue;
+            }
+
+            public override string ToString()
+            {
+                string? dataString = Data?.ToString();
+                if (Data != null && DataType != null)
+                {
+                    if (typeof(IList).IsAssignableFrom(DataType)) 
+                    { // 列表类型
+
+                        IList list = (IList)Data;
+                        List<string> arr = new();
+                        foreach (object item in list)
+                        {
+                            arr.Add(item.ToString());
+                        }
+                        dataString = $"IList[{Util.String.StringHelper.Concat(arr, ", ")}]";
+                    }
+                }
+                return $"{Name}={dataString}";
+            }
+        }
+        #endregion
+
+        #region 全局对象 绑定
+        /// <summary>
+        /// 绑定一个全局对象作为数据源, 可以在窗口左侧的全局对象区域修改数据, 修改数据后将同时应用到绑定的对象上
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="name">该绑定的名称</param>
+        /// <param name="target">将要绑定的对象</param>
+        /// <param name="getProperty">取得字段或者属性的方法</param>
+        /// <param name="initValue"></param>
+        /// <param name="forceType">强制使用该类型</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public void BindData<T, TProperty>(
+            string name,
+            T target, 
+            Expression<Func<T, TProperty>> getProperty,
+            TProperty initValue,
+            Type? forceType = null)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            if (GlobalItems.ContainsKey(name))
+            {
+                throw new ArgumentException($"已有同名全局对象 {name}", nameof(name));
+            }
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+            if (getProperty == null)
+            {
+                throw new ArgumentNullException(nameof(getProperty));
+            }
+            MemberExpression? member = getProperty.Body as MemberExpression;
+            if (member == null)
+            {
+                throw new ArgumentException($"请为类型 \"{typeof(T).FullName}\" 指定一个字段或属性作为 Lambda 的主体", nameof(getProperty));
+            }
+            BindItem item = new BindItem()
+            {
+                Name = name,
+                Target = target,
+                TargetField = typeof(T).GetField(member.Member.Name),
+                TargetProperty = typeof(T).GetProperty(member.Member.Name),
+            };
+            if (item.TargetField != null)
+            {
+                item.DataType = item.TargetField.FieldType;
+            }
+            else if (item.TargetProperty != null)
+            {
+                item.DataType = item.TargetProperty.PropertyType;
+            }
+            else
+            {
+                throw new ArgumentException($"未能在类型 \"{typeof(T).FullName}\" 中找到名为 \"{member.Member.Name}\" 的公共字段或属性", nameof(T));
+            }
+            if (forceType != null && item.DataType!.IsAssignableFrom(forceType))
+            {
+                throw new ArgumentException(
+                    $"无法将类型 \"{forceType.FullName}\" 强制分配给需要绑定的字段或属性 \"{item.DataType.FullName}\"", 
+                    nameof(forceType));
+            }
+
+            item.SetValue(initValue);
+
+            GlobalItems.Add(name, item);
+            UpdateGlobalList();
+        }
+
+        public class BindItem : GlobalItem
+        {
+            /// <summary>
+            /// 绑定的目标
+            /// </summary>
+            public object? Target { get; set; }
+            /// <summary>
+            /// 绑定的目标字段 (绑定的字段与属性仅其中一者生效)
+            /// </summary>
+            public FieldInfo? TargetField { get; set; }
+            /// <summary>
+            /// 绑定的目标属性 (绑定的字段与属性仅其中一者生效)
+            /// </summary>
+            public PropertyInfo? TargetProperty { get; set; }
+
+
+            public override void SetValue(object? newValue)
+            {
+                base.SetValue(newValue);
+                if (TargetField != null)
+                {
+                    TargetField.SetValue(Target, newValue);
+                }
+                else if (TargetProperty != null)
+                {
+                    TargetProperty.SetValue(Target, newValue);
+                }
+            }
+
+            public override string ToString()
+            {
+                return $"[绑定]{base.ToString()}";
+            }
+        }
+        #endregion
+
         #region 窗口事件
         protected override void OnClosing(CancelEventArgs e)
         {
@@ -273,5 +491,6 @@ namespace WinFormsTest
             base.OnClosing(e);
         }
         #endregion
+
     }
 }

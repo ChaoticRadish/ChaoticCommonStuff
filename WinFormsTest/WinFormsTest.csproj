@@ -20,4 +20,9 @@
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms.DataVisualization" />
+  </ItemGroup>
+
 </Project>

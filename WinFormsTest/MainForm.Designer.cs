@@ -28,14 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-            this.label1 = new System.Windows.Forms.Label();
             this.MoitoringsListView = new System.Windows.Forms.ListView();
+            this.MoitoringTimeLabel = new System.Windows.Forms.Label();
             this.GlobalListView = new System.Windows.Forms.ListView();
             this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.Logger = new ChaoticWinformControl.LogShowerBox();
-            this.MoitoringTimeLabel = new System.Windows.Forms.Label();
+            this.GlobalItemRightMenuMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.Value_Bool_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.NoSupport_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -43,6 +47,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.SuspendLayout();
+            this.GlobalItemRightMenuMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -86,15 +91,6 @@
             this.splitContainer2.SplitterWidth = 3;
             this.splitContainer2.TabIndex = 0;
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(11, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(53, 12);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "监听对象";
-            // 
             // MoitoringsListView
             // 
             this.MoitoringsListView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -107,6 +103,15 @@
             this.MoitoringsListView.UseCompatibleStateImageBehavior = false;
             this.MoitoringsListView.View = System.Windows.Forms.View.List;
             // 
+            // MoitoringTimeLabel
+            // 
+            this.MoitoringTimeLabel.AutoSize = true;
+            this.MoitoringTimeLabel.Location = new System.Drawing.Point(70, 8);
+            this.MoitoringTimeLabel.Name = "MoitoringTimeLabel";
+            this.MoitoringTimeLabel.Size = new System.Drawing.Size(53, 12);
+            this.MoitoringTimeLabel.TabIndex = 4;
+            this.MoitoringTimeLabel.Text = "轮询间隔";
+            // 
             // GlobalListView
             // 
             this.GlobalListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -118,6 +123,8 @@
             this.GlobalListView.Size = new System.Drawing.Size(250, 224);
             this.GlobalListView.TabIndex = 3;
             this.GlobalListView.UseCompatibleStateImageBehavior = false;
+            this.GlobalListView.View = System.Windows.Forms.View.List;
+            this.GlobalListView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.GlobalListView_MouseClick);
             // 
             // label2
             // 
@@ -128,6 +135,15 @@
             this.label2.TabIndex = 2;
             this.label2.Text = "全局对象";
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(11, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(53, 12);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "监听对象";
+            // 
             // Logger
             // 
             this.Logger.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -136,14 +152,27 @@
             this.Logger.Size = new System.Drawing.Size(1064, 259);
             this.Logger.TabIndex = 0;
             // 
-            // MoitoringTimeLabel
+            // GlobalItemRightMenuMenuStrip
             // 
-            this.MoitoringTimeLabel.AutoSize = true;
-            this.MoitoringTimeLabel.Location = new System.Drawing.Point(70, 8);
-            this.MoitoringTimeLabel.Name = "MoitoringTimeLabel";
-            this.MoitoringTimeLabel.Size = new System.Drawing.Size(53, 12);
-            this.MoitoringTimeLabel.TabIndex = 4;
-            this.MoitoringTimeLabel.Text = "轮询间隔";
+            this.GlobalItemRightMenuMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.Value_Bool_ToolStripMenuItem,
+            this.NoSupport_ToolStripMenuItem});
+            this.GlobalItemRightMenuMenuStrip.Name = "GlobalItemRightMenuMenuStrip";
+            this.GlobalItemRightMenuMenuStrip.Size = new System.Drawing.Size(149, 48);
+            // 
+            // Value_Bool_ToolStripMenuItem
+            // 
+            this.Value_Bool_ToolStripMenuItem.Name = "Value_Bool_ToolStripMenuItem";
+            this.Value_Bool_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.Value_Bool_ToolStripMenuItem.Text = "切换bool值";
+            this.Value_Bool_ToolStripMenuItem.Click += new System.EventHandler(this.Value_Bool_ToolStripMenuItem_Click);
+            // 
+            // NoSupport_ToolStripMenuItem
+            // 
+            this.NoSupport_ToolStripMenuItem.Enabled = false;
+            this.NoSupport_ToolStripMenuItem.Name = "NoSupport_ToolStripMenuItem";
+            this.NoSupport_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.NoSupport_ToolStripMenuItem.Text = "不支持的类型";
             // 
             // MainForm
             // 
@@ -162,6 +191,7 @@
             this.splitContainer2.Panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
+            this.GlobalItemRightMenuMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -176,5 +206,8 @@
         private ListView MoitoringsListView;
         private Label label1;
         private Label MoitoringTimeLabel;
+        private ContextMenuStrip GlobalItemRightMenuMenuStrip;
+        private ToolStripMenuItem Value_Bool_ToolStripMenuItem;
+        private ToolStripMenuItem NoSupport_ToolStripMenuItem;
     }
 }
