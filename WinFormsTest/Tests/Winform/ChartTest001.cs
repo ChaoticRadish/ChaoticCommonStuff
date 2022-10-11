@@ -37,6 +37,7 @@ namespace WinFormsTest.Tests
         public override void TestContent()
         {
             MainForm!.BindData("可见?", chart1, c => c.Visible, chart1.Visible);
+            MainForm!.BindData("序列[0]名字", chart1.Series[0], s => s.Name, chart1.Series[0].Name);
             MainForm!.BindData(
                 "数据",   // 名称
                 this, f => f.data, // 绑定对象 

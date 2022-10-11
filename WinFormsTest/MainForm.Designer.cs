@@ -40,6 +40,7 @@
             this.GlobalItemRightMenuMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.Value_Bool_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.NoSupport_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Value_String_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -156,9 +157,10 @@
             // 
             this.GlobalItemRightMenuMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.Value_Bool_ToolStripMenuItem,
+            this.Value_String_ToolStripMenuItem,
             this.NoSupport_ToolStripMenuItem});
             this.GlobalItemRightMenuMenuStrip.Name = "GlobalItemRightMenuMenuStrip";
-            this.GlobalItemRightMenuMenuStrip.Size = new System.Drawing.Size(149, 48);
+            this.GlobalItemRightMenuMenuStrip.Size = new System.Drawing.Size(181, 92);
             // 
             // Value_Bool_ToolStripMenuItem
             // 
@@ -173,6 +175,13 @@
             this.NoSupport_ToolStripMenuItem.Name = "NoSupport_ToolStripMenuItem";
             this.NoSupport_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.NoSupport_ToolStripMenuItem.Text = "不支持的类型";
+            // 
+            // Value_String_ToolStripMenuItem
+            // 
+            this.Value_String_ToolStripMenuItem.Name = "Value_String_ToolStripMenuItem";
+            this.Value_String_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.Value_String_ToolStripMenuItem.Text = "修改字符串";
+            this.Value_String_ToolStripMenuItem.Click += new System.EventHandler(this.Value_String_ToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -209,5 +218,6 @@
         private ContextMenuStrip GlobalItemRightMenuMenuStrip;
         private ToolStripMenuItem Value_Bool_ToolStripMenuItem;
         private ToolStripMenuItem NoSupport_ToolStripMenuItem;
+        private ToolStripMenuItem Value_String_ToolStripMenuItem;
     }
 }

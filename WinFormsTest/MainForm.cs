@@ -1,6 +1,6 @@
 ﻿using ChaoticWinformControl;
+using ChaoticWinformControl.FeatureGroup;
 using HarmonyLib;
-using Mono.Cecil;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.EnumComboBoxTest001>();
+            SetTest<Tests.ChartTest001>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 
@@ -261,11 +261,13 @@ namespace WinFormsTest
             GlobalListView.Items.Clear();
             foreach (string key in GlobalItems.Keys)
             {
-                GlobalListView.Items.Add(new ListViewItem()
+                ListViewItem item = new ListViewItem()
                 {
                     Text = GlobalItems[key]?.ToString(),
                     Tag = GlobalItems[key],
-                });
+                };
+                GlobalItems[key].RelateListViewItem = item;
+                GlobalListView.Items.Add(item);
             }
         }
         #region 右键菜单
@@ -297,6 +299,10 @@ namespace WinFormsTest
                     Value_Bool_ToolStripMenuItem.Visible = true;
                     Value_Bool_ToolStripMenuItem.Text = $"切换为: {!(bool)globalItem.Data!}";
                 }
+                else if (globalItem.DataType == typeof(string))
+                {
+                    Value_String_ToolStripMenuItem.Visible = true;
+                }
                 else
                 {
                     NoSupport_ToolStripMenuItem.Visible = true;
@@ -311,6 +317,28 @@ namespace WinFormsTest
             if (CurrentRightButtonGlobalItem == null) return;
 
             CurrentRightButtonGlobalItem.SetValue(!(bool)CurrentRightButtonGlobalItem.Data!);
+        }
+        private void Value_String_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (CurrentRightButtonGlobalItem == null) return;
+
+            InputFormFrame frame = new InputFormFrame()
+            {
+                Buttons = MessageBoxButtons.OKCancel,
+                Text = "修改字符串",
+                HintText = $"修改全局对象 '{CurrentRightButtonGlobalItem.Name}' 的值:",
+            };
+            TextBox textBox = new TextBox()
+            {
+                Text = (string)CurrentRightButtonGlobalItem.Data!
+            };
+            frame.SetBody(textBox);
+            DialogResult result = frame.ShowDialog(this);
+            if (result == DialogResult.OK)
+            {
+                string newString = textBox.Text;
+                CurrentRightButtonGlobalItem.SetValue(newString);
+            }
         }
         #endregion
 
@@ -332,9 +360,19 @@ namespace WinFormsTest
             /// </summary>
             public Type? DataType { get; set; }
 
+            /// <summary>
+            /// 关联的列表项
+            /// </summary>
+            public ListViewItem? RelateListViewItem { get; set; }
+
+
             public virtual void SetValue(object? newValue) 
             {
                 Data = newValue;
+                if (RelateListViewItem != null)
+                {
+                    RelateListViewItem.Text = ToString();
+                }
             }
 
             public override string ToString()
