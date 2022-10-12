@@ -242,6 +242,13 @@ namespace Util.String
         {
             return input.Split(split).Where(s => !string.IsNullOrEmpty(s)).ToList();
         }
+        /// <summary>
+        /// 使用输入的字符串切分
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="splits">标志分割位的字符, 将会视为多个字符来使用, 而不是作为字符串使用</param>
+        /// <param name="dosomething"></param>
+        /// <returns></returns>
         public static List<string> SplitMultiChar(
             string input, 
             string splits = " ,;，。\n\t:",
@@ -255,6 +262,48 @@ namespace Util.String
             return strArr.Where(s => !string.IsNullOrEmpty(s)).ToList();
         }
         #endregion
+        #region 换行
 
+        /// <summary>
+        /// 每隔一定间距, 插入一个换行符
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="lineWidth"></param>
+        /// <returns></returns>
+        public static string SplitLine(string str, int lineWidth = 60)
+        {
+            if (str.Length > lineWidth)
+            {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < str.Length; i++)
+                {
+                    sb.Append(str[i]);
+                    if ((i + 1) % 50 == 0 && i != str.Length - 1)
+                    {
+                        sb.AppendLine();
+                    }
+                }
+                str = sb.ToString();
+            }
+            return str;
+        }
+
+        #endregion
+        #region 类型字符串
+        /// <summary>
+        /// 取得类型字符串, 会对一些特殊的类型做一点处理, 比如Nullable<>
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static string GetTypeString(Type type)
+        {
+            string output = type.FullName;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                output = $"Nullable<{type.GetGenericArguments()[0].FullName}>";
+            }
+            return output;
+        }
+        #endregion
     }
 }
