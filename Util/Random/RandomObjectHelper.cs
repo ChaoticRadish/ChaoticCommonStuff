@@ -32,6 +32,11 @@ namespace Util.Random
             {
                 return;
             }
+            if (propertyInfo.SetMethod == null)
+            {
+                // 属性未提供Setting
+                return;
+            }
 
             Type type = propertyInfo.PropertyType;
             bool isNullable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
@@ -125,7 +130,7 @@ namespace Util.Random
         private static object GetRandomBoolValue(PropertyInfo propertyInfo, System.Random random)
         {
             ProbabilityAttribute probability = propertyInfo.GetCustomAttribute<ProbabilityAttribute>();
-            return propertyInfo == null ? 
+            return probability == null ? 
                 RandomValueTypeHelper.RandomBool(random)
                 :
                 RandomValueTypeHelper.RandomTrue(random, probability.True);
