@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using Util.Random.Attributes;
 
 namespace Util.Random
 {
@@ -32,49 +33,74 @@ namespace Util.Random
                 return;
             }
 
-            if (typeof(int) == propertyInfo.PropertyType)
+            Type type = propertyInfo.PropertyType;
+            object propertyValue = null;
+
+            bool isNullable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+            if (isNullable)
             {
-                SetRandomIntValue(obj, propertyInfo, random);
+                // 可空类型
+                type = Nullable.GetUnderlyingType(type);
             }
-            else if (typeof(bool) == propertyInfo.PropertyType)
+
+            if (isNullable && RandomValueTypeHelper.RandomTrue(random, 0.1))
+            {// 如果是可空类型, 按一定概率覆null值
+                propertyValue = null;
+            }
+            else if(typeof(int) == type)
             {
-                propertyInfo.SetValue(obj, RandomValueTypeHelper.RandomBool(random), null);
+                propertyValue = GetRandomIntValue(propertyInfo, random);
             }
-            else if (typeof(double) == propertyInfo.PropertyType)
+            else if (typeof(bool) == type)
             {
-                SetRandomDoubleValue(obj, propertyInfo, random);
+                propertyValue = RandomValueTypeHelper.RandomBool(random);
             }
-            else if (typeof(float) == propertyInfo.PropertyType)
+            else if (typeof(double) == type)
             {
-                SetRandomFloatValue(obj, propertyInfo, random);
+                propertyValue = GetRandomDoubleValue(propertyInfo, random);
             }
-            else if (typeof(long) == propertyInfo.PropertyType)
+            else if (typeof(float) == type)
             {
-                SetRandomLongValue(obj, propertyInfo, random);
+                propertyValue = GetRandomFloatValue(propertyInfo, random);
             }
-            else if (typeof(string) == propertyInfo.PropertyType)
+            else if (typeof(long) == type)
             {
-                SetRandomStringValue(obj, propertyInfo, random);
+                propertyValue = GetRandomLongValue(propertyInfo, random);
             }
-            else if (typeof(IList).IsAssignableFrom(propertyInfo.PropertyType))
+            else if (typeof(string) == type)
             {
-                SetRandomListValue(obj, propertyInfo, random);
+                propertyValue = GetRandomStringValue(propertyInfo, random);
             }
-            else if (propertyInfo.PropertyType.IsClass)
+            else if (typeof(DateTime) == type)
             {
-                propertyInfo.SetValue(obj, GetObject(propertyInfo.PropertyType, random), null);
+                propertyValue = GetRandomDateTimeValue(propertyInfo, random);
             }
+            else if (typeof(IList).IsAssignableFrom(type))
+            {
+                propertyValue = GetRandomListValue(propertyInfo, random);
+            }
+            else if (type.IsClass)
+            {
+                propertyValue = GetObject(type, random);
+            }
+            else
+            {
+                // 其他的未受支持的情况
+                return;
+            }
+
+            propertyInfo.SetValue(obj, propertyValue, null);
 
         }
 
         #region 设置值的具体实现
         /// <summary>
-        /// 为对象的指定属性赋随机值, 不会判断, 需要确保输入的参数不为空
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
         /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static void SetRandomIntValue(object obj, PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomIntValue(PropertyInfo propertyInfo, System.Random random)
         {
             // 取值范围
             int min = 0;
@@ -86,15 +112,14 @@ namespace Util.Random
                 min = range.Min;
                 max = range.Max;
             }
-            propertyInfo.SetValue(obj, RandomValueTypeHelper.RandomeInt(random, min, max), null);
+            return RandomValueTypeHelper.RandomeInt(random, min, max);
         }
         /// <summary>
-        /// 为对象的指定属性赋随机值, 不会判断, 需要确保输入的参数不为空
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
-        /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static void SetRandomLongValue(object obj, PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomLongValue(PropertyInfo propertyInfo, System.Random random)
         {
             // 取值范围
             long min = 0;
@@ -106,15 +131,14 @@ namespace Util.Random
                 min = range.Min;
                 max = range.Max;
             }
-            propertyInfo.SetValue(obj, RandomValueTypeHelper.RandomeLong(random, min, max), null);
+            return RandomValueTypeHelper.RandomeLong(random, min, max);
         }
         /// <summary>
-        /// 为对象的指定属性赋随机值, 不会判断, 需要确保输入的参数不为空
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
-        /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static void SetRandomFloatValue(object obj, PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomFloatValue(PropertyInfo propertyInfo, System.Random random)
         {
             // 取值范围
             float min = 0;
@@ -126,15 +150,14 @@ namespace Util.Random
                 min = range.Min;
                 max = range.Max;
             }
-            propertyInfo.SetValue(obj, RandomValueTypeHelper.RandomeFloat(random, min, max), null);
+            return RandomValueTypeHelper.RandomeFloat(random, min, max);
         }
         /// <summary>
-        /// 为对象的指定属性赋随机值, 不会判断, 需要确保输入的参数不为空
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
-        /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static void SetRandomDoubleValue(object obj, PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomDoubleValue(PropertyInfo propertyInfo, System.Random random)
         {
             // 取值范围
             double min = 0;
@@ -146,15 +169,14 @@ namespace Util.Random
                 min = range.Min;
                 max = range.Max;
             }
-            propertyInfo.SetValue(obj, RandomValueTypeHelper.RandomeDouble(random, min, max), null);
+            return RandomValueTypeHelper.RandomeDouble(random, min, max);
         }
         /// <summary>
-        /// 为对象的指定属性赋随机值, 不会判断, 需要确保输入的参数不为空
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
-        /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static void SetRandomStringValue(object obj, PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomStringValue(PropertyInfo propertyInfo, System.Random random)
         {
             // 取值范围
             int min = 0;
@@ -166,20 +188,51 @@ namespace Util.Random
                 min = range.Min;
                 max = range.Max;
             }
-            propertyInfo.SetValue(
-            obj,
-            RandomStringHelper.GetRandomEnglishString(
-            RandomValueTypeHelper.RandomeInt(random, min, max),
-            random),
-            null);
+            string output = RandomStringHelper.GetRandomEnglishString(
+                RandomValueTypeHelper.RandomeInt(random, min, max),
+                random);
+            StringFormatAttribute format = propertyInfo.GetCustomAttribute<StringFormatAttribute>();
+            if (format != null)
+            {
+                switch (format.Case)
+                {
+                    case StringFormatAttribute.CaseEnum.Upper:
+                        output = output.ToUpper();
+                        break;
+                    case StringFormatAttribute.CaseEnum.Lower:
+                        output = output.ToLower();
+                        break;
+                }
+            }
+            return output;
         }
         /// <summary>
-        /// 为对象的指定属性赋随机值, 不会判断, 需要确保输入的参数不为空
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
+        /// </summary>
+        /// <param name="propertyInfo">属性</param>
+        /// <param name="random"></param>
+        private static object GetRandomDateTimeValue(PropertyInfo propertyInfo, System.Random random)
+        {
+            // 取值范围
+            DateTime start = new DateTime(2000, 1, 1);
+            int rangeDays = 3000;
+
+            Attributes.DateTimeRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.DateTimeRangeAttribute>();
+            if (range != null)
+            {
+                start = range.StartDate;
+                rangeDays = range.RangeDays;
+            }
+            return start.AddDays(random.Next(rangeDays))
+                        .AddMilliseconds(random.Next(24 * 60 * 60 * 1000));
+        }
+        /// <summary>
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
         /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static void SetRandomListValue(object obj, PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomListValue(PropertyInfo propertyInfo, System.Random random)
         {
             // 取值范围
             int min = 0;
@@ -190,7 +243,7 @@ namespace Util.Random
                 min = range.Min;
                 max = range.Max;
             }
-            propertyInfo.SetValue(obj, GetList(propertyInfo.PropertyType, random, min, max), null);
+            return GetList(propertyInfo.PropertyType, random, min, max);
         }
 
         #endregion

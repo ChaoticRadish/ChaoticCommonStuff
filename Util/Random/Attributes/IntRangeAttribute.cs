@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Util.Random.Attributes
 {
     /// <summary>
-    /// 区间
+    /// int类型区间, 可用来表示长度范围
     /// </summary>
     public class IntRangeAttribute : Attribute
     {
