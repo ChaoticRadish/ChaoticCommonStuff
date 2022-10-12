@@ -32,6 +32,7 @@
             this.TypeShower = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.CreateButton = new System.Windows.Forms.Button();
+            this.TestButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.ObjShower)).BeginInit();
             this.SuspendLayout();
             // 
@@ -84,11 +85,23 @@
             this.CreateButton.UseVisualStyleBackColor = true;
             this.CreateButton.Click += new System.EventHandler(this.CreateButton_Click);
             // 
+            // TestButton
+            // 
+            this.TestButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.TestButton.Location = new System.Drawing.Point(551, 201);
+            this.TestButton.Name = "TestButton";
+            this.TestButton.Size = new System.Drawing.Size(170, 23);
+            this.TestButton.TabIndex = 8;
+            this.TestButton.Text = "测试随机生成窗口";
+            this.TestButton.UseVisualStyleBackColor = true;
+            this.TestButton.Click += new System.EventHandler(this.TestButton_Click);
+            // 
             // RandomTest001
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(733, 450);
+            this.Controls.Add(this.TestButton);
             this.Controls.Add(this.TypeShower);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.CreateButton);
@@ -107,5 +120,6 @@
         private RichTextBox TypeShower;
         private Label label1;
         private Button CreateButton;
+        private Button TestButton;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChaoticWinformControl.FeatureGroup;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -99,7 +100,7 @@ namespace WinFormsTest.Tests
             [IntRange(10)]
             public string? 字符串1 { get; set; }
             [IntRange(10)]
-            public string 字符串2 { get; set; }
+            public string? 字符串2 { get; set; }
             public DateTime 日期1 { get; set; }
             [DateTimeRange("2020/1/30", 999)]
             [Probability(Null = 0.95)]
@@ -128,6 +129,19 @@ namespace WinFormsTest.Tests
 
             [Probability(True = 0.1)]
             public bool BOOL_8 { get; set; }
+        }
+
+        private void TestButton_Click(object sender, EventArgs e)
+        {
+            RandomObjectCreatrForm form = new RandomObjectCreatrForm();
+            form.FormBorderStyle = FormBorderStyle.None;
+            form.SetTargetType<TestClass>();
+            InputFormFrame frame = new InputFormFrame()
+            {
+                Buttons = MessageBoxButtons.YesNo,
+            };
+            frame.SetBody(form);
+            frame.ShowDialog();
         }
     }
 }

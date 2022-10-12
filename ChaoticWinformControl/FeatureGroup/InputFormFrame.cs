@@ -55,15 +55,21 @@ namespace ChaoticWinformControl.FeatureGroup
 
             BodyPanel.Controls.Clear();
 
-            Body.Parent = BodyPanel;
             Body.Location = new Point();
             if (Body is Form form)
             {
                 form.Dock = DockStyle.Fill;
                 form.TopLevel = false;
+
+                // 窗口适应输入窗口的尺寸
+                Height += form.Height - BodyPanel.Height;
+                Width += form.Width - BodyPanel.Width;
+
+                Body.Parent = BodyPanel;
             }
             else
             {
+                Body.Parent = BodyPanel;
                 Body.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
                 Body.Size = new Size(BodyPanel.Width, BodyPanel.Height);
                 if (Body.Height != BodyPanel.Height)
