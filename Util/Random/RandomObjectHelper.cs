@@ -34,8 +34,6 @@ namespace Util.Random
             }
 
             Type type = propertyInfo.PropertyType;
-            object propertyValue = null;
-
             bool isNullable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
             if (isNullable)
             {
@@ -43,17 +41,21 @@ namespace Util.Random
                 type = Nullable.GetUnderlyingType(type);
             }
 
-            if (isNullable && RandomValueTypeHelper.RandomTrue(random, 0.1))
-            {// 如果是可空类型, 按一定概率覆null值
+            // 前置的一些特性
+            ProbabilityAttribute probability = propertyInfo.GetCustomAttribute<ProbabilityAttribute>();
+
+            object propertyValue;
+            if (isNullable && RandomValueTypeHelper.RandomTrue(random, probability == null ? 0.1 : probability.Null))
+            {// 如果是可空类型, 按一定概率赋null值
                 propertyValue = null;
             }
-            else if(typeof(int) == type)
+            else if (typeof(int) == type)
             {
                 propertyValue = GetRandomIntValue(propertyInfo, random);
             }
             else if (typeof(bool) == type)
             {
-                propertyValue = RandomValueTypeHelper.RandomBool(random);
+                propertyValue = GetRandomBoolValue(propertyInfo, random);
             }
             else if (typeof(double) == type)
             {
@@ -113,6 +115,20 @@ namespace Util.Random
                 max = range.Max;
             }
             return RandomValueTypeHelper.RandomeInt(random, min, max);
+        }
+        /// <summary>
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
+        /// </summary>
+        /// <param name="obj">被赋值对象</param>
+        /// <param name="propertyInfo">属性</param>
+        /// <param name="random"></param>
+        private static object GetRandomBoolValue(PropertyInfo propertyInfo, System.Random random)
+        {
+            ProbabilityAttribute probability = propertyInfo.GetCustomAttribute<ProbabilityAttribute>();
+            return propertyInfo == null ? 
+                RandomValueTypeHelper.RandomBool(random)
+                :
+                RandomValueTypeHelper.RandomTrue(random, probability.True);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空

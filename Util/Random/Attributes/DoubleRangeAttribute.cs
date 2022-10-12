@@ -22,7 +22,11 @@ namespace Util.Random.Attributes
             Min = min;
             Max = max;
         }
-        public DoubleRangeAttribute(double length) : this(0, length) { }
+        /// <summary>
+        /// 范围设置为 (0, maxlength)
+        /// </summary>
+        /// <param name="maxlength"></param>
+        public DoubleRangeAttribute(double maxlength) : this(0, maxlength) { }
 
         public double Min { get; private set; }
         public double Max { get; private set; }
