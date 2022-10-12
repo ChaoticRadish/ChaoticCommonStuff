@@ -37,7 +37,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.AssemblyTest001>();
+            SetTest<Tests.RandomTest001>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 

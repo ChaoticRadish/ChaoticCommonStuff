@@ -1,4 +1,5 @@
-﻿using ChaoticWinformControl.FeatureGroup;
+﻿using ChaoticWinformControl;
+using ChaoticWinformControl.FeatureGroup;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -133,15 +134,37 @@ namespace WinFormsTest.Tests
 
         private void TestButton_Click(object sender, EventArgs e)
         {
-            RandomObjectCreatrForm form = new RandomObjectCreatrForm();
-            form.FormBorderStyle = FormBorderStyle.None;
-            form.SetTargetType<TestClass>();
-            InputFormFrame frame = new InputFormFrame()
+            InputFormFrame typeSelect = new InputFormFrame()
             {
-                Buttons = MessageBoxButtons.YesNo,
+                Buttons = MessageBoxButtons.OKCancel,
             };
-            frame.SetBody(form);
-            frame.ShowDialog();
+            TypeComboBox typeComboBox = new TypeComboBox();
+            typeComboBox.SetAssembly(Assembly.GetExecutingAssembly());
+            typeComboBox.TypeClassify = 
+                TypeComboBox.TypeClassifyEnum.All 
+                | TypeComboBox.TypeClassifyEnum.HasEmptyArgConstructor;
+            typeSelect.SetBody(typeComboBox);
+            if (typeSelect.ShowDialog() == DialogResult.OK && typeComboBox.SelectedType != null)
+            {
+                RandomObjectCreatrForm form = new RandomObjectCreatrForm()
+                {
+                    FormBorderStyle = FormBorderStyle.None,
+                };
+                form.OnCreateException += (ex) =>
+                {
+                    Log("生成失败", ex.Message);
+                    Log("生成失败", ex.StackTrace);
+                };
+                form.SetTargetType(typeComboBox.SelectedType);
+                InputFormFrame frame = new InputFormFrame()
+                {
+                    Buttons = MessageBoxButtons.YesNo,
+                };
+                frame.SetBody(form);
+                frame.ShowDialog();
+            }
+
+
         }
     }
 }

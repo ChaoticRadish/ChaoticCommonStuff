@@ -53,10 +53,29 @@ namespace ChaoticWinformControl.FeatureGroup
         {
             TargetType = typeof(T);
 
-            TypeShower.Text = TargetType?.FullName;
+            ShowPropertys();
+        }
+        /// <summary>
+        /// 设置准备生成的目标类型
+        /// </summary>
+        /// <param name="t"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public void SetTargetType(Type t)
+        {
+            if (t.GetConstructor(Type.EmptyTypes) == null)
+            {
+                throw new ArgumentException("输入类型未提供无参构造函数", nameof(t));
+            }
+            TargetType = t;
+
+            ShowPropertys();
+
         }
 
 
+        /// <summary>
+        /// 将对象显示到表格
+        /// </summary>
         private void ShowObj()
         {
             PropertyDatas.Clear();
@@ -73,6 +92,27 @@ namespace ChaoticWinformControl.FeatureGroup
                     TypeString = property.PropertyType.FullName.SplitLine(),
                     Name = property.Name,
                     Value = property.GetValue(Obj)?.ToString()
+                });
+            }
+        }
+        private void ShowPropertys()
+        {
+            TypeShower.Text = string.Empty;
+            PropertyDatas.Clear();
+
+            if (TargetType == null) return;
+
+            TypeShower.Text = TargetType.FullName;
+
+
+            foreach (PropertyInfo property in TargetType.GetProperties())
+            {
+                PropertyDatas.Add(new Data()
+                {
+                    // 类型 = StringHelper.GetTypeString(property.PropertyType).SplitLine(),
+                    TypeString = property.PropertyType.FullName.SplitLine(),
+                    Name = property.Name,
+                    Value = null,
                 });
             }
         }
