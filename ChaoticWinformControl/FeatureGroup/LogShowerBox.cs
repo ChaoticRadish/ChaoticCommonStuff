@@ -64,12 +64,14 @@ namespace ChaoticWinformControl
         /// <param name="data"></param>
         private void Print(Data data)
         {
-            ContentShower.SelectionColor = (Color)data.Color;
             if (!string.IsNullOrEmpty(ContentShower.Text))
             {
-                ContentShower.Text += '\n';
+                ContentShower.AppendText("\n");
             }
-            ContentShower.Text += data.ToString();
+            ContentShower.SelectionStart = ContentShower.TextLength;
+            ContentShower.SelectionLength = 0;
+            ContentShower.SelectionColor = (Color)data.Color;
+            ContentShower.AppendText(data.ToString());
             ContentShower.SelectionColor = ForeColor;
 
             MoveToEnd();
