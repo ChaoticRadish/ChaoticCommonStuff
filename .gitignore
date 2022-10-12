@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# 这个文件夹仅用于预览前端, 不用上传
+WebTest/wwwroot/View
