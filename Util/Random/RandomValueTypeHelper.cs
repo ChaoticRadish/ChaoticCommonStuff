@@ -45,7 +45,7 @@ namespace Util.Random
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public static int RandomeInt(System.Random random, int min, int max)
+        public static int RandomInt(System.Random random, int min, int max)
         {
             if (min > max)
             {
@@ -90,9 +90,9 @@ namespace Util.Random
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public static long RandomeLong(System.Random random, long min, long max)
+        public static long RandomLong(System.Random random, long min, long max)
         {
-            return (long)RandomeDouble(random, min, max);
+            return (long)RandomDouble(random, min, max);
         }
         /// <summary>
         /// 指定区间内的double
@@ -101,7 +101,7 @@ namespace Util.Random
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public static double RandomeDouble(System.Random random, double min, double max)
+        public static double RandomDouble(System.Random random, double min, double max)
         {
             if (min > max)
             {
@@ -119,7 +119,7 @@ namespace Util.Random
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public static float RandomeFloat(System.Random random, float min, float max)
+        public static float RandomFloat(System.Random random, float min, float max)
         {
             if (min > max)
             {

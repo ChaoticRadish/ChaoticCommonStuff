@@ -1,8 +1,9 @@
-﻿using System;
+﻿using NPOI.SS.Formula.Functions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Util.Random.Attributes;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Util.Random
 {
@@ -17,6 +18,79 @@ namespace Util.Random
     /// </summary>
     public static class RandomObjectHelper
     {
+        #region 配置类
+        /// <summary>
+        /// 随机生成的配置
+        /// </summary>
+        public struct RandomConfig
+        {
+            public int MinInt { get; set; }
+            public int MaxInt { get; set; }
+            public long MinLong { get; set; }
+            public long MaxLong { get; set; }
+            public long MinFloat { get; set; }
+            public long MaxFloat { get; set; }
+            public double MinDouble { get; set; }
+            public double MaxDouble { get; set; }
+            public int MinStringLength { get; set; }
+            public int MaxStringLength { get; set; }
+            public int MinCount { get; set; }
+            public int MaxCount { get; set; }
+            public DateTime MinDateTime { get; set; }
+            public int DateTimeRange { get; set; }
+            public double ProbabilityTrue { get; set; }
+            /// <summary>
+            /// 属性是可空类型 <see cref="Nullable"/> 时, 赋null值的概率
+            /// </summary>
+            public double ProbabilityNull { get; set; }
+            /// <summary>
+            /// <para>列表深度, 在生成列表时使用, 在方法 <see cref="GetList(Type, System.Random, int, int, RandomConfig?)"/> 中若为0, 将返</para>
+            /// <para>回null, 在该方法内传入生成列表项的方法是, 会先减1</para>
+            /// <para>但是如果是负数, 则说明不做深度限制, 调用生成列表项, 数值将不变</para>
+            /// <para>!!! 如果要设置成负数, 需要谨慎使用, 避免无限递归 !!!</para>
+            /// </summary>
+            public int ListDepth { get; set; }
+            /// <summary>
+            /// 大小写
+            /// </summary>
+            public CaseEnum Case { get; set; }
+
+            /// <summary>
+            /// 字符串大小写
+            /// </summary>
+            public enum CaseEnum
+            {
+                /// <summary>
+                /// 大写
+                /// </summary>
+                Upper,
+                /// <summary>
+                /// 小写
+                /// </summary>
+                Lower,
+                /// <summary>
+                /// 未设置 (即维持原状)
+                /// </summary>
+                None,
+            }
+        }
+        /// <summary>
+        /// 默认配置
+        /// </summary>
+        public static RandomConfig DefaultConfig { get; private set; } = new RandomConfig()
+        {
+            MinInt = 0,         MaxInt = 100,
+            MinLong = 0,        MaxLong = 100,
+            MinFloat = 0,       MaxFloat = 100,
+            MinDouble = 0,      MaxDouble = 100,
+            MinCount = 0,       MaxCount = 20,      ListDepth = 1,
+            MinStringLength = 0,    MaxStringLength = 10 * 365, Case = RandomConfig.CaseEnum.None,
+            MinDateTime = new DateTime(2008, 08, 07),   DateTimeRange = 50,
+            ProbabilityTrue = 0.5,
+            ProbabilityNull = 0.1,
+        };
+        #endregion
+
         #region 设置属性的值
         /// <summary>
         /// 为对象的指定属性赋随机值
@@ -24,9 +98,10 @@ namespace Util.Random
         /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        public static void SetRandomValue(object obj, PropertyInfo propertyInfo, System.Random random = null)
+        public static void SetRandomValue(object obj, PropertyInfo propertyInfo, System.Random random = null, RandomConfig? config = null)
         {
             random = random ?? new System.Random();
+            RandomConfig useConfig = config ?? DefaultConfig;
 
             if (obj == null || propertyInfo == null)
             {
@@ -49,51 +124,58 @@ namespace Util.Random
             // 前置的一些特性
             ProbabilityAttribute probability = propertyInfo.GetCustomAttribute<ProbabilityAttribute>();
 
-            object propertyValue;
-            if (isNullable && RandomValueTypeHelper.RandomTrue(random, probability == null ? 0.1 : probability.Null))
+            object propertyValue = null;
+            if (isNullable && RandomValueTypeHelper.RandomTrue(random, probability == null ? useConfig.ProbabilityNull : probability.Null))
             {// 如果是可空类型, 按一定概率赋null值
                 propertyValue = null;
             }
-            else if (typeof(int) == type)
-            {
-                propertyValue = GetRandomIntValue(propertyInfo, random);
-            }
-            else if (typeof(bool) == type)
-            {
-                propertyValue = GetRandomBoolValue(propertyInfo, random);
-            }
-            else if (typeof(double) == type)
-            {
-                propertyValue = GetRandomDoubleValue(propertyInfo, random);
-            }
-            else if (typeof(float) == type)
-            {
-                propertyValue = GetRandomFloatValue(propertyInfo, random);
-            }
-            else if (typeof(long) == type)
-            {
-                propertyValue = GetRandomLongValue(propertyInfo, random);
-            }
-            else if (typeof(string) == type)
-            {
-                propertyValue = GetRandomStringValue(propertyInfo, random);
-            }
-            else if (typeof(DateTime) == type)
-            {
-                propertyValue = GetRandomDateTimeValue(propertyInfo, random);
-            }
-            else if (typeof(IList).IsAssignableFrom(type))
-            {
-                propertyValue = GetRandomListValue(propertyInfo, random);
-            }
-            else if (type.IsClass)
-            {
-                propertyValue = GetObject(type, random);
-            }
             else
             {
-                // 其他的未受支持的情况
-                return;
+                TypeHelper.SwitchType(type)
+                    .Case<int>(() =>
+                    {
+                        propertyValue = GetRandomIntValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<bool>(() =>
+                    {
+                        propertyValue = GetRandomBoolValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<double>(() =>
+                    {
+                        propertyValue = GetRandomDoubleValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<float>(() =>
+                    {
+                        propertyValue = GetRandomFloatValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<long>(() =>
+                    {
+                        propertyValue = GetRandomLongValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<string>(() =>
+                    {
+                        propertyValue = GetRandomStringValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<DateTime>(() =>
+                    {
+                        propertyValue = GetRandomDateTimeValue(propertyInfo, random, useConfig);
+                    })
+                    .CaseBase<IList>(() =>
+                    {
+                        propertyValue = GetRandomListValue(propertyInfo, random, useConfig);
+                    })
+                    .Default(() =>
+                    {
+                        if (type.IsClass)
+                        {
+                            propertyValue = GetObject(type, random);
+                        }
+                        else
+                        {
+                            // 其他的未受支持的情况
+                        }
+                    })
+                    .Run();
             }
 
             propertyInfo.SetValue(obj, propertyValue, null);
@@ -107,19 +189,20 @@ namespace Util.Random
         /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomIntValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomIntValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            int min = 0;
-            int max = 100;
+            int min = useConfig.MinInt;
+            int max = useConfig.MaxInt;
 
-            Attributes.IntRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.IntRangeAttribute>();
+            IntRangeAttribute range = propertyInfo.GetCustomAttribute<IntRangeAttribute>();
             if (range != null)
             {
                 min = range.Min;
                 max = range.Max;
             }
-            return RandomValueTypeHelper.RandomeInt(random, min, max);
+            return RandomValueTypeHelper.RandomInt(random, min, max);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
@@ -127,11 +210,11 @@ namespace Util.Random
         /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomBoolValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomBoolValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
             ProbabilityAttribute probability = propertyInfo.GetCustomAttribute<ProbabilityAttribute>();
             return probability == null ? 
-                RandomValueTypeHelper.RandomBool(random)
+                (config == null ? RandomValueTypeHelper.RandomBool(random) : RandomValueTypeHelper.RandomTrue(config.Value.ProbabilityTrue))
                 :
                 RandomValueTypeHelper.RandomTrue(random, probability.True);
         }
@@ -140,90 +223,96 @@ namespace Util.Random
         /// </summary>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomLongValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomLongValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            long min = 0;
-            long max = 100;
+            long min = useConfig.MinLong;
+            long max = useConfig.MaxLong;
 
-            Attributes.LongRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.LongRangeAttribute>();
+            LongRangeAttribute range = propertyInfo.GetCustomAttribute<LongRangeAttribute>();
             if (range != null)
             {
                 min = range.Min;
                 max = range.Max;
             }
-            return RandomValueTypeHelper.RandomeLong(random, min, max);
+            return RandomValueTypeHelper.RandomLong(random, min, max);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomFloatValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomFloatValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            float min = 0;
-            float max = 100;
+            float min = useConfig.MinFloat;
+            float max = useConfig.MaxFloat;
 
-            Attributes.FloatRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.FloatRangeAttribute>();
+            FloatRangeAttribute range = propertyInfo.GetCustomAttribute<FloatRangeAttribute>();
             if (range != null)
             {
                 min = range.Min;
                 max = range.Max;
             }
-            return RandomValueTypeHelper.RandomeFloat(random, min, max);
+            return RandomValueTypeHelper.RandomFloat(random, min, max);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomDoubleValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomDoubleValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            double min = 0;
-            double max = 100;
+            double min = useConfig.MinDouble;
+            double max = useConfig.MaxDouble;
 
-            Attributes.DoubleRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.DoubleRangeAttribute>();
+            DoubleRangeAttribute range = propertyInfo.GetCustomAttribute<DoubleRangeAttribute>();
             if (range != null)
             {
                 min = range.Min;
                 max = range.Max;
             }
-            return RandomValueTypeHelper.RandomeDouble(random, min, max);
+            return RandomValueTypeHelper.RandomDouble(random, min, max);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomStringValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomStringValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            int min = 0;
-            int max = 100;
+            int min = useConfig.MinStringLength;
+            int max = useConfig.MaxStringLength;
+            RandomConfig.CaseEnum textCase = useConfig.Case;
 
-            Attributes.IntRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.IntRangeAttribute>();
+            IntRangeAttribute range = propertyInfo.GetCustomAttribute<IntRangeAttribute>();
             if (range != null)
             {
                 min = range.Min;
                 max = range.Max;
             }
             string output = RandomStringHelper.GetRandomEnglishString(
-                RandomValueTypeHelper.RandomeInt(random, min, max),
+                RandomValueTypeHelper.RandomInt(random, min, max),
                 random);
             StringFormatAttribute format = propertyInfo.GetCustomAttribute<StringFormatAttribute>();
             if (format != null)
             {
-                switch (format.Case)
-                {
-                    case StringFormatAttribute.CaseEnum.Upper:
-                        output = output.ToUpper();
-                        break;
-                    case StringFormatAttribute.CaseEnum.Lower:
-                        output = output.ToLower();
-                        break;
-                }
+                textCase = format.Case;
+            }
+            switch (textCase)
+            {
+                case RandomConfig.CaseEnum.Upper:
+                    output = output.ToUpper();
+                    break;
+                case RandomConfig.CaseEnum.Lower:
+                    output = output.ToLower();
+                    break;
             }
             return output;
         }
@@ -232,13 +321,14 @@ namespace Util.Random
         /// </summary>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomDateTimeValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomDateTimeValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            DateTime start = new DateTime(2000, 1, 1);
-            int rangeDays = 3000;
+            DateTime start = useConfig.MinDateTime;
+            int rangeDays = useConfig.DateTimeRange;
 
-            Attributes.DateTimeRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.DateTimeRangeAttribute>();
+            DateTimeRangeAttribute range = propertyInfo.GetCustomAttribute<DateTimeRangeAttribute>();
             if (range != null)
             {
                 start = range.StartDate;
@@ -253,18 +343,19 @@ namespace Util.Random
         /// <param name="obj">被赋值对象</param>
         /// <param name="propertyInfo">属性</param>
         /// <param name="random"></param>
-        private static object GetRandomListValue(PropertyInfo propertyInfo, System.Random random)
+        private static object GetRandomListValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
         {
+            RandomConfig useConfig = config ?? DefaultConfig;
             // 取值范围
-            int min = 0;
-            int max = 100;
-            Attributes.IntRangeAttribute range = propertyInfo.GetCustomAttribute<Attributes.IntRangeAttribute>();
+            int min = useConfig.MinCount;
+            int max = useConfig.MaxCount;
+            IntRangeAttribute range = propertyInfo.GetCustomAttribute<IntRangeAttribute>();
             if (range != null)
             {
                 min = range.Min;
                 max = range.Max;
             }
-            return GetList(propertyInfo.PropertyType, random, min, max);
+            return GetList(propertyInfo.PropertyType, random, min, max, config);
         }
 
         #endregion
@@ -273,41 +364,77 @@ namespace Util.Random
         /// <summary>
         /// 取得随机的指定类型的对象
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <param name="type">目标类型</param>
         /// <param name="random"></param>
+        /// <param name="config">本次调用的通用随机参数, 优先级低于属性上的随机参数注解</param>
         /// <returns></returns>
-        public static object GetObject(Type type, System.Random random = null)
+        public static object GetObject(Type type, System.Random random = null, RandomConfig? config = null)
         {
             random = random ?? new System.Random();
+            RandomConfig useConfig = config ?? DefaultConfig;
 
             if (typeof(IList).IsAssignableFrom(type))
-            {
+            {// 是列表的话
                 return GetList(type, random, 0, 100);
             }
             else
-            {
-                if (type.IsValueType)
-                {
-                    return Activator.CreateInstance(type);
-                }
-                else
-                {
-                    if (TypeHelper.ExistNonParamPublicConstructor(type))
-                    {// 检查是否有无参构造函数
-                        object output = Activator.CreateInstance(type);
-
-                        foreach (PropertyInfo propertyInfo in type.GetProperties())
-                        {// 遍历公共属性
-                            SetRandomValue(output, propertyInfo, random);
-                        }
-
-                        return output;
-                    }
-                    else
+            {// 如果不是
+                object output = null;
+                TypeHelper.SwitchType(type)
+                    .Case<int>(() =>
                     {
-                        return null;
-                    }
-                }
+                        output = RandomValueTypeHelper.RandomInt(random, useConfig.MinInt, useConfig.MaxInt);
+                    })
+                    .Case<long>(() =>
+                    {
+                        output = RandomValueTypeHelper.RandomLong(random, useConfig.MinLong, useConfig.MaxLong);
+                    })
+                    .Case<double>(() =>
+                    {
+                        output = RandomValueTypeHelper.RandomDouble(random, useConfig.MinDouble, useConfig.MaxDouble);
+                    })
+                    .Case<float>(() =>
+                    {
+                        output = RandomValueTypeHelper.RandomFloat(random, useConfig.MinFloat, useConfig.MaxFloat);
+                    })
+                    .Case<bool>(() =>
+                    {
+                        output = RandomValueTypeHelper.RandomTrue(random, useConfig.ProbabilityTrue);
+                    })
+                    .Case<string>(() =>
+                    {
+                        string s = RandomStringHelper.GetRandomEnglishString(
+                                        RandomValueTypeHelper.RandomInt(random, useConfig.MinStringLength, useConfig.MaxStringLength),
+                                        random);
+                        switch (useConfig.Case)
+                        {
+                            case RandomConfig.CaseEnum.Upper:
+                                s = s.ToUpper();
+                                break;
+                            case RandomConfig.CaseEnum.Lower:
+                                s = s.ToLower();
+                                break;
+                        }
+                        output = s;
+                    })
+                    .Default(() =>
+                    {
+                        if (TypeHelper.ExistNonParamPublicConstructor(type))
+                        {// 检查是否有无参构造函数
+                            output = Activator.CreateInstance(type);
+
+                            foreach (PropertyInfo propertyInfo in type.GetProperties())
+                            {// 遍历公共属性
+                                SetRandomValue(output, propertyInfo, random, useConfig);
+                            }
+                        }
+                        else
+                        {
+                            output = null;
+                        }
+                    })
+                    .Run();
+                return output;
             }
         }
         /// <summary>
@@ -318,7 +445,7 @@ namespace Util.Random
         /// <param name="minCount"></param>
         /// <param name="maxCount"></param>
         /// <returns></returns>
-        public static IList GetList(Type listType, System.Random random = null, int minCount = 0, int maxCount = 100)
+        public static IList GetList(Type listType, System.Random random = null, int minCount = 0, int maxCount = 100, RandomConfig? config = null)
         {
             if (!typeof(IList).IsAssignableFrom(listType))
             {
@@ -326,6 +453,15 @@ namespace Util.Random
             }
 
             random = random ?? new System.Random();
+            RandomConfig useConfig = config ?? DefaultConfig;
+            if (useConfig.ListDepth == 0)
+            {
+                return null;
+            }
+            else if(useConfig.ListDepth > 0)
+            {
+                useConfig.ListDepth--;
+            }
 
             // 生成数量
             int count = RandomValueTypeHelper.RandomNonnegativeInt(random, minCount, maxCount);
@@ -336,7 +472,7 @@ namespace Util.Random
                 Array array = Array.CreateInstance(listType.GetElementType(), count);
                 for (int i = 0; i < count; i++)
                 {
-                    array.SetValue(GetObject(listType.GetElementType(), random), i);
+                    array.SetValue(GetObject(listType.GetElementType(), random, useConfig), i);
                 }
                 list = array;
             }
@@ -348,7 +484,7 @@ namespace Util.Random
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        list.Add(GetObject(genericArguments[0], random));
+                        list.Add(GetObject(genericArguments[0], random, useConfig));
                     }
                 }
             }
@@ -364,13 +500,13 @@ namespace Util.Random
         /// <typeparam name="T"></typeparam>
         /// <param name="random"></param>
         /// <returns></returns>
-        public static T GetObject<T>(System.Random random = null) where T : new()
+        public static T GetObject<T>(System.Random random = null, RandomConfig? config = null) where T : new()
         {
-            return (T)GetObject(typeof(T), random);
+            return (T)GetObject(typeof(T), random, config);
         }
-        public static List<T> GetList<T>(System.Random random = null, int minCount = 0, int maxCount = 100) where T : new()
+        public static List<T> GetList<T>(System.Random random = null, int minCount = 0, int maxCount = 100, RandomConfig? config = null) where T : new()
         {
-            return (List<T>)GetList(typeof(List<T>), random, minCount, maxCount);
+            return (List<T>)GetList(typeof(List<T>), random, minCount, maxCount, config);
         }
         #endregion
 

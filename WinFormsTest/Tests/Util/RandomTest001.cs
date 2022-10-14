@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Util.Random;
-using Util.Random.Attributes;
 using Util.String;
 
 namespace WinFormsTest.Tests
@@ -78,7 +77,14 @@ namespace WinFormsTest.Tests
         {
             try
             {
-                Obj = RandomObjectHelper.GetObject(TargetType);
+                RandomObjectHelper.RandomConfig config = RandomObjectHelper.DefaultConfig;
+                config.MinStringLength = 5;
+                config.MaxStringLength = 8;
+                config.ProbabilityNull = 0.5;
+                config.MinCount = 1;
+                config.MaxCount = 4;
+                config.ListDepth = 3;
+                Obj = RandomObjectHelper.GetObject(type: TargetType, config: config);
                 ShowObj();
             }
             catch (Exception ex)
@@ -104,7 +110,7 @@ namespace WinFormsTest.Tests
             public string? 字符串2 { get; set; }
             public DateTime 日期1 { get; set; }
             [DateTimeRange("2020/1/30", 999)]
-            [Probability(Null = 0.95)]
+            [Probability(Null = 0.7)]
             public DateTime? 日期2 { get; set; }
 
             [Probability(True = 0.1)]
@@ -124,12 +130,47 @@ namespace WinFormsTest.Tests
 
             [Probability(True = 0.1)]
             public bool BOOL_6 { get; set; }
-
-            [Probability(True = 0.1)]
             public bool BOOL_7 { get; set; }
-
-            [Probability(True = 0.1)]
             public bool BOOL_8 { get; set; }
+            public List<string>? List { get; set; }
+            public string ListString 
+            {
+                get
+                {
+                    if (List != null)
+                    {
+                        return Util.String.StringHelper.Concat2(List);
+                    }
+                    return "null";
+                }
+            }
+
+            public int[]? Ints { get; set; }
+            public string IntsString
+            {
+                get
+                {
+                    if (Ints != null)
+                    {
+                        return Util.String.StringHelper.Concat2(Ints.Select(i => i.ToString()).ToList());
+                    }
+                    return "null";
+                }
+            }
+
+            public List<TestClass>? TestList { get; set; }
+            public string TestString
+            {
+                get
+                {
+                    if (TestList != null)
+                    {
+                        return $"({TestList.Count})[ {Util.String.StringHelper.Concat(TestList.Select(i => i.TestString).ToList(), ", ")} ]";
+                    }
+                    return "null";
+                }
+            }
+
         }
 
         private void TestButton_Click(object sender, EventArgs e)

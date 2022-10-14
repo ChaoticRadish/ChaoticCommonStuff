@@ -55,9 +55,9 @@ namespace WinFormsTest.Tests
 
         public class TempClass
         {
-            [Util.Random.Attributes.IntRange(0, 50)]
+            [Util.Random.IntRange(0, 50)]
             public int x { get; set; }
-            [Util.Random.Attributes.IntRange(0, 50)]
+            [Util.Random.IntRange(0, 50)]
             public int y { get; set; }
 
             public override string ToString()

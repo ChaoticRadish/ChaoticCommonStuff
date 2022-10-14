@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Util.Random.Attributes
+namespace Util.Random
 {
     /// <summary>
     /// int类型区间, 可用来表示长度范围
