@@ -63,25 +63,79 @@ namespace Util
                 InputType = inputType;
                 InputObj = null;
             }
+
+            #region 执行信息
+            /// <summary>
+            /// 执行信息
+            /// </summary>
+            public struct ExceptionInfo
+            {
+                /// <summary>
+                /// 执行的类别
+                /// </summary>
+                public ExceptionTypeEnum ExceptionType { get; set; }
+                /// <summary>
+                /// 执行的类型
+                /// </summary>
+                public Type Type { get; set; }
+
+                public override string ToString()
+                {
+                    switch (ExceptionType) 
+                    {
+                        default:
+                            return $"{ExceptionType.GetDesc()}: {Type.FullName}";
+                        case ExceptionTypeEnum.Default:
+                            return ExceptionType.GetDesc();
+                }
+                }
+            }
+            public enum ExceptionTypeEnum
+            {
+                /// <summary>
+                /// 等于类型
+                /// </summary>
+                [EnumHelper.Desc("等于类型")]
+                EqualsType,
+                /// <summary>
+                /// 继承于类型
+                /// </summary>
+                [EnumHelper.Desc("继承于类型")]
+                BaseType,
+                /// <summary>
+                /// 无匹配类型, 执行了默认方法
+                /// </summary>
+                [EnumHelper.Desc("默认方法")]
+                Default,
+            }
+            #endregion
             #region 构成
 
 
             #region 构成内容
             /// <summary>
-            /// 类型模式的类型与Action对应字典
+            /// 类型模式的类型与Action对应字典, 相等部分
             /// </summary>
             private Dictionary<Type, Action> TypeModeActions = new Dictionary<Type, Action>();
             /// <summary>
-            /// 对象模式的类型与Action对应字典
+            /// 类型模式的类型与Action对应字典, 基类部分
+            /// </summary>
+            private Dictionary<Type, Action> TypeBaseModeActions = new Dictionary<Type, Action>();
+            /// <summary>
+            /// 对象模式的类型与Action对应字典, 相等部分
             /// </summary>
             private Dictionary<Type, Action<object>> ObjModeActions = new Dictionary<Type, Action<object>>();
+            /// <summary>
+            /// 对象模式的类型与Action对应字典, 基类部分
+            /// </summary>
+            private Dictionary<Type, Action<object>> ObjBaseModeActions = new Dictionary<Type, Action<object>>();
             /// <summary>
             /// 默认情况下的执行方法 (类型未匹配与输入的类型匹配)
             /// </summary>
             private Action DefaultAction;
             #endregion
             /// <summary>
-            /// 输入类型的情况下执行
+            /// 输入类型是该类型的情况下执行
             /// </summary>
             /// <typeparam name="T"></typeparam>
             /// <param name="doSomething"></param>
@@ -96,12 +150,12 @@ namespace Util
                 }
                 else
                 {
-                    throw new ArgumentException($"输入的类型重复: {type.Name}", nameof(T));
+                    throw new ArgumentException($"Case 输入的类型重复: {type.Name}", nameof(T));
                 }
                 return this;
             }
             /// <summary>
-            /// 输入类型的情况下执行
+            /// 输入类型是该类型的情况下执行
             /// </summary>
             /// <param name="doSomething"></param>
             /// <returns></returns>
@@ -115,7 +169,47 @@ namespace Util
                 }
                 else
                 {
-                    throw new ArgumentException($"输入的类型重复: {type.Name}", nameof(T));
+                    throw new ArgumentException($"Case 输入的类型重复: {type.Name}", nameof(T));
+                }
+                return this;
+            }
+            /// <summary>
+            /// 输入类型继承于该类型的情况下执行, 会在Case之后判断及运行
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="doSomething"></param>
+            /// <returns></returns>
+            public TypeSwitchBuilder CaseBase<T>(Action<T> doSomething)
+            {
+                if (doSomething == null) throw new ArgumentNullException(nameof(doSomething));
+                Type type = typeof(T);
+                if (!ObjBaseModeActions.ContainsKey(type))
+                {
+                    ObjBaseModeActions.Add(type, (obj) => doSomething.Invoke((T)obj));
+                }
+                else
+                {
+                    throw new ArgumentException($"CaseBase 输入的类型重复: {type.Name}", nameof(T));
+                }
+                return this;
+            }
+            /// <summary>
+            /// 输入类型继承于该类型的情况下执行, 会在Case之后判断及运行
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="doSomething"></param>
+            /// <returns></returns>
+            public TypeSwitchBuilder CaseBase<T>(Action doSomething)
+            {
+                if (doSomething == null) throw new ArgumentNullException(nameof(doSomething));
+                Type type = typeof(T);
+                if (!TypeBaseModeActions.ContainsKey(type))
+                {
+                    TypeBaseModeActions.Add(type, doSomething);
+                }
+                else
+                {
+                    throw new ArgumentException($"CaseBase 输入的类型重复: {type.Name}", nameof(T));
                 }
                 return this;
             }
@@ -133,42 +227,86 @@ namespace Util
             /// <summary>
             /// 执行
             /// </summary>
-            public void Run()
+            /// <returns>最终是使用什么类型来执行的, 执行了Defalut的话, 则返回null</returns>
+            /// <exception cref="ArgumentNullException"></exception>
+            public ExceptionInfo Run()
             {
                 if (InputType == null) throw new ArgumentNullException(nameof(InputType));
 
                 if (InputObj == null)
                 {
-                    RunTypeMode();
+                    return RunTypeMode();
                 }
                 else
                 {
-                    RunObjMode();
+                    return RunObjMode();
                 }
             }
-            private void RunTypeMode()
+            private ExceptionInfo RunTypeMode()
             {
                 foreach (Type type in TypeModeActions.Keys)
                 {
                     if (InputType.Equals(type))
                     {
                         TypeModeActions[type].Invoke();
-                        return;
+                        return new ExceptionInfo()
+                        {
+                            Type = type,
+                            ExceptionType = ExceptionTypeEnum.EqualsType
+                        };
                     }
                 }
-                DefaultAction.Invoke();
+                foreach (Type type in TypeBaseModeActions.Keys)
+                {
+                    if (type.IsAssignableFrom(InputType))
+                    {
+                        TypeBaseModeActions[type].Invoke();
+                        return new ExceptionInfo()
+                        {
+                            Type = type,
+                            ExceptionType = ExceptionTypeEnum.BaseType,
+                        };
+                    }
+                }
+                DefaultAction?.Invoke();
+                return new ExceptionInfo()
+                {
+                    Type = null,
+                    ExceptionType = ExceptionTypeEnum.Default,
+                };
             }
-            private void RunObjMode()
+            private ExceptionInfo RunObjMode()
             {
                 foreach (Type type in ObjModeActions.Keys)
                 {
                     if (InputType.Equals(type))
                     {
                         ObjModeActions[type].Invoke(InputObj);
-                        return;
+                        return new ExceptionInfo()
+                        {
+                            Type = type,
+                            ExceptionType = ExceptionTypeEnum.EqualsType
+                        };
                     }
                 }
-                DefaultAction.Invoke();
+                foreach (Type type in ObjBaseModeActions.Keys)
+                {
+                    if (type.IsAssignableFrom(InputType))
+                    {
+                        ObjModeActions[type].Invoke(InputObj);
+                        return new ExceptionInfo()
+                        {
+                            Type = type,
+                            ExceptionType = ExceptionTypeEnum.BaseType,
+                        };
+                    }
+                }
+                DefaultAction?.Invoke();
+                return new ExceptionInfo()
+                {
+                    Type = null,
+                    ExceptionType = ExceptionTypeEnum.Default,
+                };
             }
         }
         /// <summary>

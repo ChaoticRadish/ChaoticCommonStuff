@@ -23,11 +23,11 @@ namespace WinFormsTest.Tests
 
             List<Type> waitCheckType = new List<Type>()
             {
-                typeof(string), typeof(SwitchTypeTest001), typeof(int), typeof(short), typeof(内容)
+                typeof(string), typeof(SwitchTypeTest001), typeof(int), typeof(short), typeof(内容), typeof(List<string>)
             };
             List<object> waitCheckObj = new List<object>()
             {
-                "111", 222, 33u, 44L, 0x555, true, this, 内容.对象模式, new { index = 1 }
+                "111", 222, 33u, 44L, 0x555, true, this, 内容.对象模式, new { index = 1 }, new List<string>(){"111", "22", "3"}
             };
 
             Log(内容.类型模式, "开始");
@@ -63,7 +63,7 @@ namespace WinFormsTest.Tests
             Log(内容.对象模式, "开始");
             foreach (object forObj in waitCheckObj)
             {
-                Util.TypeHelper.SwitchType(forObj)
+                Util.TypeHelper.TypeSwitchBuilder.ExceptionInfo exceInfo = Util.TypeHelper.SwitchType(forObj)
                     .Case<int>((obj) =>
                     {
                         Log(内容.类型模式, "输入: " + forObj.GetType().FullName + " 执行过程: " + obj.GetType().FullName + ": " + obj.ToString());
@@ -84,11 +84,12 @@ namespace WinFormsTest.Tests
                     {
                         Log(内容.类型模式, "输入: " + forObj.GetType().FullName + " 执行过程: " + obj.GetType().FullName + ": " + obj.ToString());
                     })
-                    .Default(() =>
+                    /*.Default(() =>
                     {
                         Log(内容.类型模式, "默认调用: " + forObj.GetType().FullName + " 值: "+ forObj.ToString());
-                    })
+                    })*/ 
                     .Run();
+                Log(内容.类型模式, $"执行了: {exceInfo}");
             }
         }
         public enum 内容
