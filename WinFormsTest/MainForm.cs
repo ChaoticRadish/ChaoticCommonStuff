@@ -1,6 +1,7 @@
 ﻿using ChaoticWinformControl;
 using ChaoticWinformControl.FeatureGroup;
 using HarmonyLib;
+using MonoMod.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace WinFormsTest
 {
@@ -37,7 +39,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.RandomTest001>();
+            SetTest<Tests.TypeTest001>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 
@@ -136,6 +138,26 @@ namespace WinFormsTest
                 Title = title,
                 Color = color
             });
+        }
+        /// <summary>
+        /// 设置默认的Log颜色
+        /// </summary>
+        /// <param name="colors"></param>
+        public void DefaultLogColor(Dictionary<string, Color> colors)
+        {
+            foreach (string title in colors.Keys)
+            {
+                Logger.DefaultColor(title, colors[title]);
+            }
+        }
+        /// <summary>
+        /// 设置默认的Log颜色
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="color"></param>
+        public void DefaultLogColor(string title, Color color)
+        {
+            Logger.DefaultColor(title, color);
         }
         #endregion
 

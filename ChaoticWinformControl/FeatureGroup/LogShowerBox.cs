@@ -19,8 +19,13 @@ namespace ChaoticWinformControl
             AddTitleItem(" - 未选择 - ", false);
         }
         #region 数据集
-        public List<Data> Datas = new List<Data>();
-        public List<string> TitleItems = new List<string>();
+        public List<Data> Datas { get; private set; } = new List<Data>();
+        public List<string> TitleItems { get; private set; } = new List<string>();
+
+        /// <summary>
+        /// 颜色表
+        /// </summary>
+        public Dictionary<string, Color> ColorSet = new Dictionary<string, Color>(); 
         #endregion
 
 
@@ -40,12 +45,29 @@ namespace ChaoticWinformControl
 
         #region 控制方法
         /// <summary>
+        /// 设置标题默认对应的颜色
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="color"></param>
+        public void DefaultColor(string title, Color color)
+        {
+            if (ColorSet.ContainsKey(title))
+            {
+                ColorSet[title] = color;
+            }
+            else
+            {
+                ColorSet.Add(title, color);
+            }
+        }
+        /// <summary>
         /// Log一个信息
         /// </summary>
         /// <param name="data"></param>
         public void Log(Data data)
         {
-            data.Color = data.Color ?? ForeColor;
+            // 颜色: 未传入颜色时, 使用颜色表中对应标题的颜色, 无对应颜色时使用当前前景色
+            data.Color = data.Color ?? (ColorSet.ContainsKey(data.Title) ? ColorSet[data.Title] : ForeColor);
             data.Time = DateTime.Now;
 
             Datas.Add(data);

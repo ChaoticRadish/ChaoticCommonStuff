@@ -39,14 +39,31 @@ namespace WinFormsTest
         }
 
 
+        protected void Log(string title, object obj, Color? color = null)
+        {
+            MainForm?.Log(title, obj == null ? "null" : obj.ToString(), color);
+        }
         protected void Log(string title, string content, Color? color = null)
         {
             MainForm?.Log(title, content, color);
+        }
+        protected void Log<TEnum>(TEnum e, object obj, Color? color = null) where TEnum : Enum
+        {
+            MainForm?.Log(e.GetDesc(), obj == null ? "null" : obj.ToString(), color);
         }
         protected void Log<TEnum>(TEnum e, string content, Color? color = null) where TEnum : Enum
         {
             MainForm?.Log(e.GetDesc(), content, color);
         }
+        protected void LogColor(string title, Color color)
+        {
+            MainForm?.DefaultLogColor(title, color);
+        }
+        protected void LogColor<TEnum>(TEnum e, Color color) where TEnum : Enum
+        {
+            MainForm?.DefaultLogColor(e.GetDesc(), color);
+        }
+
 
         /// <summary>
         /// 取得需要监听的项
