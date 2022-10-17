@@ -1,7 +1,10 @@
-﻿using System;
+﻿using NPOI.SS.Formula.Functions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,6 +42,30 @@ namespace Util
             return result;
         }
 
+        #region Expression
+        /// <summary>
+        /// 取得输入的 Expression 指向的属性 / 字段名
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TProperty"></typeparam>
+        /// <param name="getProperty"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public static string GetName<T, TProperty>(Expression<Func<T, TProperty>> getProperty)
+        {
+            if (getProperty == null)
+            {
+                throw new ArgumentNullException(nameof(getProperty));
+            }
+            MemberExpression member = getProperty.Body as MemberExpression;
+            if (member == null)
+            {
+                throw new ArgumentException($"请为类型 \"{typeof(T).FullName}\" 指定一个字段或属性作为 Lambda 的主体", nameof(getProperty));
+            }
+            return member.Member.Name;
+        }
+        #endregion
 
         #region 类型分支判断
         /// <summary>
@@ -49,9 +76,14 @@ namespace Util
         public class TypeSwitchBuilder
         {
             #region 输入对象
-            private Type InputType { get; set; }
-            private object InputObj { get; set; }
-
+            /// <summary>
+            /// 输入的类型
+            /// </summary>
+            public readonly Type InputType;
+            /// <summary>
+            /// 输入的对象
+            /// </summary>
+            private readonly object InputObj;
             #endregion
             public TypeSwitchBuilder(object inputObj)
             {
@@ -338,6 +370,530 @@ namespace Util
         }
         #endregion
 
+        #region 属性/字段遍历
+        /// <summary>
+        /// 类型的属性/字段(公共的)遍历内容的帮助类
+        /// </summary>
+        public class PropertyErgodicBuilder
+        {
+            public PropertyErgodicBuilder(Type type)
+            {
+                TargetType = type;
+            }
+            #region 设置
+            /// <summary>
+            /// 遍历的目标类型
+            /// </summary>
+            public readonly Type TargetType;
+            /// <summary>
+            /// 目标对象
+            /// </summary>
+            public object Obj { get; private set; }
+            /// <summary>
+            /// 遍历范围
+            /// </summary>
+            public RangeEnum Range { get; private set; } = RangeEnum.All;
 
+            /// <summary>
+            /// 遍历范围枚举
+            /// </summary>
+            public enum RangeEnum
+            {
+                /// <summary>
+                /// 字段及属性
+                /// </summary>
+                All,
+                /// <summary>
+                /// 仅属性
+                /// </summary>
+                OnlyProperty,
+                /// <summary>
+                /// 仅字段
+                /// </summary>
+                OnlyField,
+            }
+            #endregion
+
+
+            /// <summary>
+            /// 设置操作目标对象
+            /// </summary>
+            /// <param name="obj"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder TargetObj(object obj)
+            {
+                Obj = obj;
+                return this;
+            }
+            /// <summary>
+            /// 设置遍历范围
+            /// </summary>
+            /// <param name="range"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder SetRange(RangeEnum range)
+            {
+                Range = range;
+                return this;
+            }
+
+            #region Actions
+            /// <summary>
+            /// 不传值也不取值的属性名与方法的字典
+            /// </summary>
+            private Dictionary<string, Action<Item>> NotValueActions = new Dictionary<string, Action<Item>>();
+            /// <summary>
+            /// 不传值也不取值的默认方法
+            /// </summary>
+            private Action<Item> NotValueDefaultAction;
+            /// <summary>
+            /// 传值的属性名与方法的字典
+            /// </summary>
+            private Dictionary<string, Action<Item, object>> GetValueActions = new Dictionary<string, Action<Item, object>>();
+            /// <summary>
+            /// 传值的属性名的默认方法
+            /// </summary>
+            private Action<Item, object> GetValueDefaultAction;
+            /// <summary>
+            /// 取值的属性名与方法的字典
+            /// </summary>
+            private Dictionary<string, Func<Item, SetCheckResult>> SetValueActions = new Dictionary<string, Func<Item, SetCheckResult>>();
+            /// <summary>
+            /// 取值的属性名的默认方法
+            /// </summary>
+            private Func<Item, SetCheckResult> SetValueDefaultAction;
+            /// <summary>
+            /// 修改值的属性名与方法的字典
+            /// </summary>
+            private Dictionary<string, Func<Item, object, SetCheckResult>> ChangeValueActions = new Dictionary<string, Func<Item, object, SetCheckResult>>();
+            /// <summary>
+            /// 修改值的属性名的默认方法
+            /// </summary>
+            private Func<Item, object, SetCheckResult> ChangeValueDefaultAction;
+
+            #region 特定字段
+            
+            /// <summary>
+            /// 将一个方法存入字典的帮助方法
+            /// </summary>
+            /// <typeparam name="TAction"></typeparam>
+            /// <param name="dic">字典</param>
+            /// <param name="key">键, 字段名/属性名</param>
+            /// <param name="action"></param>
+            /// <param name="keyStr">键的参数名字, 用于异常时显示</param>
+            /// <param name="actionStr">方法的的参数名字, 用于异常时显示</param>
+            private void AddIntoDic<TAction>(Dictionary<string, TAction> dic, string key, TAction action, string keyStr, string actionStr)
+            {
+                if (action == null) throw new ArgumentNullException(actionStr);
+                if (!dic.ContainsKey(key))
+                {
+                    dic.Add(key, action);
+                }
+                else
+                {
+                    throw new ArgumentException($"输入的属性/字段名 {key} 已存在", keyStr);
+                }
+            }
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 对该属性/字段做点什么
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder Exist(string name, Action<Item> doSth)
+            {
+                AddIntoDic(NotValueActions, name, doSth, nameof(name), nameof(doSth));
+                return this;
+            }
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 且设置的目标对象不为空, 传回属性值, 对该属性/字段做点什么
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistGet(string name, Action<Item, object> doSth)
+            {
+                AddIntoDic(GetValueActions, name, doSth, nameof(name), nameof(doSth));
+                return this;
+            }
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 对该属性/字段做点什么, 并由调用方返回是否写入值的信息 (<see cref="SetCheckResult"/>)
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="checkFunc"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistSet(string name, Func<Item, SetCheckResult> checkFunc)
+            {
+                AddIntoDic(SetValueActions, name, checkFunc, nameof(name), nameof(checkFunc));
+                return this;
+            }
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 且设置的目标对象不为空, 传回属性值, 对该属性/字段做点什么, 并由调用方返回是否写入值的信息 (<see cref="SetCheckResult"/>)
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="checkFunc"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistChange(string name, Func<Item, object, SetCheckResult> checkFunc)
+            {
+                AddIntoDic(ChangeValueActions, name, checkFunc, nameof(name), nameof(checkFunc));
+                return this;
+            }
+            #region Expression版本, 用起来并没有更方便, 先注释掉了
+            /*
+
+
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 对该属性/字段做点什么
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <typeparam name="TProperty"></typeparam>
+            /// <param name="getProperty"></param>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistExpr<T, TProperty>(Expression<Func<T, TProperty>> getProperty, Action<Item> doSth)
+            {
+                AddIntoDic(NotValueActions, GetName(getProperty), doSth, nameof(getProperty), nameof(doSth));
+                return this;
+            }
+
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 且设置的目标对象不为空, 传回属性值, 对该属性/字段做点什么
+            /// </summary>
+            /// <param name = "name" ></ param >
+            /// < param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistExprGet<T, TProperty>(Expression<Func<T, TProperty>> getProperty, Action<Item, object> doSth)
+            {
+                AddIntoDic(GetValueActions, GetName(getProperty), doSth, nameof(getProperty), nameof(doSth));
+                return this;
+            }
+
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 对该属性/字段做点什么, 并由调用方返回是否写入值的信息 (<see cref="SetCheckResult"/>)
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="checkFunc"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistExprSet<T, TProperty>(Expression<Func<T, TProperty>> getProperty, Func<Item, SetCheckResult> checkFunc)
+            {
+                AddIntoDic(SetValueActions, GetName(getProperty), checkFunc, nameof(getProperty), nameof(checkFunc));
+                return this;
+            }
+
+            /// <summary>
+            /// 存在输入名字的属性/字段时, 且设置的目标对象不为空, 传回属性值, 对该属性/字段做点什么, 并由调用方返回是否写入值的信息 (<see cref="SetCheckResult"/>)
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="checkFunc"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder ExistExprChange<T, TProperty>(Expression<Func<T, TProperty>> getProperty, Func<Item, object, SetCheckResult> checkFunc)
+            {
+                AddIntoDic(ChangeValueActions, GetName(getProperty), checkFunc, nameof(getProperty), nameof(checkFunc));
+                return this;
+            }
+
+            */
+            #endregion
+
+
+            #endregion
+
+            #region 默认方法
+            /// <summary>
+            /// 默认情况下对属性做什么
+            /// </summary>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder Default(Action<Item> doSth)
+            {
+                NotValueDefaultAction = doSth;
+                return this;
+            }
+            /// <summary>
+            /// 设置的目标对象不为空的默认情况下, 传入值, 并对属性做什么
+            /// </summary>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder DefaultGet(Action<Item, object> doSth)
+            {
+                GetValueDefaultAction = doSth;
+                return this;
+            }
+            /// <summary>
+            /// 设置的目标对象不为空的默认情况下对属性做什么, 并由调用方返回是否写入值的信息 (<see cref="SetCheckResult"/>)
+            /// </summary>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder DefaultSet(Func<Item, SetCheckResult> doSth)
+            {
+                SetValueDefaultAction = doSth;
+                return this;
+            }
+            /// <summary>
+            /// 设置的目标对象不为空的默认情况下, 传入值, 并对属性做什么, 并由调用方返回是否写入值的信息 (<see cref="SetCheckResult"/>)
+            /// </summary>
+            /// <param name="doSth"></param>
+            /// <returns></returns>
+            public PropertyErgodicBuilder DefaultChange(Func<Item, object, SetCheckResult> doSth)
+            {
+                ChangeValueDefaultAction = doSth;
+                return this;
+            }
+            #endregion
+
+
+            #endregion
+            /// <summary>
+            /// 检查是否设置值的返回结果
+            /// </summary>
+            public struct SetCheckResult
+            {
+                public bool Set { get; set; }
+                public object Value { get; set; }
+                /// <summary>
+                /// 设置值
+                /// </summary>
+                /// <param name="obj"></param>
+                /// <returns></returns>
+                public static SetCheckResult SetObj(object obj)
+                {
+                    return new SetCheckResult()
+                    {
+                        Set = true,
+                        Value = obj
+                    };
+                }
+                /// <summary>
+                /// 不设置值
+                /// </summary>
+                /// <returns></returns>
+                public static SetCheckResult NoSet()
+                {
+                    return new SetCheckResult()
+                    {
+                        Set = false,
+                        Value = null,
+                    };
+                }
+            }
+            public class Item
+            {
+                /// <summary>
+                /// 属性/字段名
+                /// </summary>
+                public string Name { get; set; }
+                /// <summary>
+                /// 这是属性
+                /// </summary>
+                public bool IsProperty { get; set; }
+                /// <summary>
+                /// 这是字段
+                /// </summary>
+                public bool IsField { get; set; }
+
+                public PropertyInfo PropertyInfo { get; set; }
+                public FieldInfo FieldInfo { get; set; }
+
+                /// <summary>
+                /// 取得自定义特性
+                /// </summary>
+                /// <typeparam name="T"></typeparam>
+                /// <returns></returns>
+                public T GetCustomAttribute<T>() where T : Attribute
+                {
+                    return IsField ? FieldInfo.GetCustomAttribute<T>() : PropertyInfo.GetCustomAttribute<T>();
+                }
+
+                public static Item Property(PropertyInfo info)
+                {
+                    return new Item()
+                    {
+                        Name = info.Name,
+                        FieldInfo = null,
+                        PropertyInfo = info,
+                        IsField = false,
+                        IsProperty = true,
+                    };
+                }
+                public static Item Field(FieldInfo info)
+                {
+                    return new Item()
+                    {
+                        Name = info.Name,
+                        FieldInfo = info,
+                        PropertyInfo = null,
+                        IsField = true,
+                        IsProperty = false,
+                    };
+                }
+            }
+
+
+            #region 执行
+            public void Run()
+            {
+                switch (Range)
+                {
+                    case RangeEnum.All:
+                        ErgodicProperty();
+                        ErgodicField();
+                        break;
+                    case RangeEnum.OnlyProperty:
+                        ErgodicProperty();
+                        break;
+                    case RangeEnum.OnlyField:
+                        ErgodicField();
+                        break;
+                }
+            }
+            private void ErgodicProperty()
+            {
+                PropertyInfo[] propertyInfos = TargetType.GetProperties();
+                foreach (PropertyInfo property in propertyInfos)
+                {
+                    Item item = Item.Property(property);
+                    if (NotValueActions.ContainsKey(item.Name))
+                    {
+                        NotValueActions[item.Name].Invoke(item);
+                    }
+                    else
+                    {
+                        NotValueDefaultAction?.Invoke(item);
+                    }
+
+                    if (Obj == null) continue;
+
+                    if (GetValueActions.ContainsKey(item.Name))
+                    {
+                        GetValueActions[item.Name].Invoke(item, property.GetValue(Obj));
+                    }
+                    else
+                    {
+                        GetValueDefaultAction?.Invoke(item, property.GetValue(Obj));
+                    }
+
+                    if (property.SetMethod == null) continue;
+
+                    if (SetValueActions.ContainsKey(item.Name))
+                    {
+                        SetCheckResult result = SetValueActions[item.Name].Invoke(item);
+                        if (result.Set)
+                        {
+                            property.SetValue(Obj, result.Value);
+                        }
+                    }
+                    else if (SetValueDefaultAction != null)
+                    {
+                        SetCheckResult result = SetValueDefaultAction.Invoke(item);
+                        if (result.Set)
+                        {
+                            property.SetValue(Obj, result.Value);
+                        }
+                    }
+
+                    if (ChangeValueActions.ContainsKey(item.Name))
+                    {
+                        SetCheckResult result = ChangeValueActions[item.Name].Invoke(item, property.GetValue(Obj));
+                        if (result.Set)
+                        {
+                            property.SetValue(Obj, result.Value);
+                        }
+                    }
+                    else if (ChangeValueDefaultAction != null)
+                    {
+                        SetCheckResult result = ChangeValueDefaultAction.Invoke(item, property.GetValue(Obj));
+                        if (result.Set)
+                        {
+                            property.SetValue(Obj, result.Value);
+                        }
+                    }
+                }
+            }
+            private void ErgodicField()
+            {
+                FieldInfo[] fieldInfos = TargetType.GetFields();
+                foreach (FieldInfo field in fieldInfos)
+                {
+                    Item item = Item.Field(field);
+                    if (NotValueActions.ContainsKey(item.Name))
+                    {
+                        NotValueActions[item.Name].Invoke(item);
+                    }
+                    else
+                    {
+                        NotValueDefaultAction?.Invoke(item);
+                    }
+
+                    if (Obj == null) continue;
+
+                    if (GetValueActions.ContainsKey(item.Name))
+                    {
+                        GetValueActions[item.Name].Invoke(item, field.GetValue(Obj));
+                    }
+                    else
+                    {
+                        GetValueDefaultAction?.Invoke(item, field.GetValue(Obj));
+                    }
+
+                    if (SetValueActions.ContainsKey(item.Name))
+                    {
+                        SetCheckResult result = SetValueActions[item.Name].Invoke(item);
+                        if (result.Set)
+                        {
+                            field.SetValue(Obj, result.Value);
+                        }
+                    }
+                    else if (SetValueDefaultAction != null)
+                    {
+                        SetCheckResult result = SetValueDefaultAction.Invoke(item);
+                        if (result.Set)
+                        {
+                            field.SetValue(Obj, result.Value);
+                        }
+                    }
+
+                    if (ChangeValueActions.ContainsKey(item.Name))
+                    {
+                        SetCheckResult result = ChangeValueActions[item.Name].Invoke(item, field.GetValue(Obj));
+                        if (result.Set)
+                        {
+                            field.SetValue(Obj, result.Value);
+                        }
+                    }
+                    else if (ChangeValueDefaultAction != null)
+                    {
+                        SetCheckResult result = ChangeValueDefaultAction.Invoke(item, field.GetValue(Obj));
+                        if (result.Set)
+                        {
+                            field.SetValue(Obj, result.Value);
+                        }
+                    }
+                }
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// 遍历目标属性
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public static PropertyErgodicBuilder ErgodicBuilder<T>(T obj = null)
+            where T : class
+        {
+            return ErgodicBuilder(typeof(T)).TargetObj(obj);
+
+        }
+        public static PropertyErgodicBuilder ErgodicBuilder<T>()
+        {
+            return ErgodicBuilder(typeof(T));
+        }
+        /// <summary>
+        /// 遍历目标类型的属性
+        /// </summary>
+        /// <param name="type"></param>
+        public static PropertyErgodicBuilder ErgodicBuilder(Type type)
+        {
+            return new PropertyErgodicBuilder(type);
+        }
+        #endregion
     }
 }
