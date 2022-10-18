@@ -84,8 +84,8 @@ namespace Util.Random
             MinFloat = 0,       MaxFloat = 100,
             MinDouble = 0,      MaxDouble = 100,
             MinCount = 0,       MaxCount = 20,      ListDepth = 1,
-            MinStringLength = 0,    MaxStringLength = 10 * 365, Case = RandomConfig.CaseEnum.None,
-            MinDateTime = new DateTime(2008, 08, 07),   DateTimeRange = 50,
+            MinStringLength = 0,    MaxStringLength = 50, Case = RandomConfig.CaseEnum.None,
+            MinDateTime = new DateTime(2008, 08, 07),   DateTimeRange = 10 * 365,
             ProbabilityTrue = 0.5,
             ProbabilityNull = 0.1,
         };
