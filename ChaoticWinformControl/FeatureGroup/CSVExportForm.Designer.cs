@@ -30,12 +30,12 @@
         {
             this.label1 = new System.Windows.Forms.Label();
             this.RelateTable = new System.Windows.Forms.DataGridView();
-            this.ExportButton = new System.Windows.Forms.Button();
-            this.FileInput = new ChaoticWinformControl.FileSelectTextBox();
             this.PropertyNameColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.PropertyTypeColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TargetColumnNameColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IsExportColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.ExportButton = new System.Windows.Forms.Button();
+            this.FileInput = new ChaoticWinformControl.FileSelectTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.RelateTable)).BeginInit();
             this.SuspendLayout();
             // 
@@ -67,26 +67,6 @@
             this.RelateTable.Size = new System.Drawing.Size(776, 404);
             this.RelateTable.TabIndex = 1;
             // 
-            // ExportButton
-            // 
-            this.ExportButton.Location = new System.Drawing.Point(713, 6);
-            this.ExportButton.Name = "ExportButton";
-            this.ExportButton.Size = new System.Drawing.Size(75, 23);
-            this.ExportButton.TabIndex = 3;
-            this.ExportButton.Text = "导出";
-            this.ExportButton.UseVisualStyleBackColor = true;
-            this.ExportButton.Click += new System.EventHandler(this.ExportButton_Click);
-            // 
-            // FileInput
-            // 
-            this.FileInput.Filter = "逗号分隔值文件|*.csv";
-            this.FileInput.Location = new System.Drawing.Point(83, 6);
-            this.FileInput.Name = "FileInput";
-            this.FileInput.ReadOnly = true;
-            this.FileInput.SelectFormTitle = "设置输出文件名";
-            this.FileInput.Size = new System.Drawing.Size(396, 21);
-            this.FileInput.TabIndex = 2;
-            // 
             // PropertyNameColumn
             // 
             this.PropertyNameColumn.DataPropertyName = "PropertyName";
@@ -116,6 +96,28 @@
             this.IsExportColumn.Name = "IsExportColumn";
             this.IsExportColumn.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.IsExportColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // ExportButton
+            // 
+            this.ExportButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ExportButton.Location = new System.Drawing.Point(713, 6);
+            this.ExportButton.Name = "ExportButton";
+            this.ExportButton.Size = new System.Drawing.Size(75, 23);
+            this.ExportButton.TabIndex = 3;
+            this.ExportButton.Text = "导出";
+            this.ExportButton.UseVisualStyleBackColor = true;
+            this.ExportButton.Click += new System.EventHandler(this.ExportButton_Click);
+            // 
+            // FileInput
+            // 
+            this.FileInput.FileMustExist = false;
+            this.FileInput.Filter = "逗号分隔值文件|*.csv";
+            this.FileInput.Location = new System.Drawing.Point(83, 6);
+            this.FileInput.Name = "FileInput";
+            this.FileInput.ReadOnly = true;
+            this.FileInput.SelectFormTitle = "设置输出文件名";
+            this.FileInput.Size = new System.Drawing.Size(396, 21);
+            this.FileInput.TabIndex = 2;
             // 
             // CSVExportForm
             // 
