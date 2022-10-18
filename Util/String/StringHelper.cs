@@ -181,7 +181,7 @@ namespace Util.String
         /// <param name="split">分隔符</param>
         /// <param name="lastSplit">是否保留最后一个分隔符</param>
         /// <returns></returns>
-        public static string Concat(List<string> inputs, string split = "\n", bool lastSplit = false)
+        public static string Concat(IList<string> inputs, string split = "\n", bool lastSplit = false)
         {
             if (inputs == null) return null;
 

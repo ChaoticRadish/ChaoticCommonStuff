@@ -39,7 +39,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.TypeTest001>();
+            SetTest<Tests.CSVFormTest001>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 

@@ -14,7 +14,7 @@ namespace ChaoticWinformControl.FeatureGroup
     /// <summary>
     /// 时间范围的简单输入, 选择一个开始时间之后，再选择一个时间长度
     /// </summary>
-    [DefaultEvent("OnSelectedRangeChanged")]
+    [DefaultEvent(nameof(OnSelectedRangeChanged))]
     public partial class DateRangeSimpleInputBox : UserControl
     {
         #region 可配置属性
