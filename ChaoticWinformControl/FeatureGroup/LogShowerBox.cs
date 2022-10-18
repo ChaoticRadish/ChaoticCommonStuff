@@ -12,6 +12,14 @@ namespace ChaoticWinformControl
 {
     public partial class LogShowerBox : UserControl
     {
+        #region 属性
+        /// <summary>
+        /// Log时间的格式字符串
+        /// </summary>
+        [Category("自定义属性"), Description("Log时间的格式字符串"), Browsable(true)]
+        public string TimeFormat { get; set; } = "yyyy-MM-dd hh:mm:ss:fff";
+        #endregion
+
         public LogShowerBox()
         {
             InitializeComponent();
@@ -61,6 +69,19 @@ namespace ChaoticWinformControl
             }
         }
         /// <summary>
+        /// 简单的Log一个信息
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        public void SimpleLog(string title, string content)
+        {
+            Log(new Data()
+            {
+                Title = title,
+                Content = content,
+            });
+        }
+        /// <summary>
         /// Log一个信息
         /// </summary>
         /// <param name="data"></param>
@@ -93,7 +114,7 @@ namespace ChaoticWinformControl
             ContentShower.SelectionStart = ContentShower.TextLength;
             ContentShower.SelectionLength = 0;
             ContentShower.SelectionColor = (Color)data.Color;
-            ContentShower.AppendText(data.ToString());
+            ContentShower.AppendText(GetString(data));
             ContentShower.SelectionColor = ForeColor;
 
             MoveToEnd();
@@ -142,6 +163,13 @@ namespace ChaoticWinformControl
         }
         #endregion
 
+        #region 转换方法
+        public string GetString(Data data)
+        {
+            string timeString = string.IsNullOrEmpty(TimeFormat) ? "" : "(" + data.Time.ToString(TimeFormat) + ")";
+            return $"{(string.IsNullOrEmpty(data.Title) ? "" : $"[{data.Title}]")}{timeString}: {data.Content}";
+        }
+        #endregion
 
         public struct SelectedItem
         {
