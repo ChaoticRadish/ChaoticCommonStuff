@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Util.File;
 
 namespace ChaoticWinformControl.FeatureGroup
 {
@@ -133,12 +134,17 @@ namespace ChaoticWinformControl.FeatureGroup
         /// <param name="fileName"></param>
         private void ReadColumnHead(string fileName)
         {
-            if (string.IsNullOrEmpty(FileInput.FileName))
+            if (string.IsNullOrEmpty(fileName))
             {
                 MessageBox.Show("未选择输出文件");
                 return;
             }
-            using (var file = new FileStream(FileInput.FileName, FileMode.Open, FileAccess.Read))
+            if (FileStateHelper.IsTakeUp(fileName))
+            {
+                Logger.Log("失败", "文件另一个程序占用");
+                return;
+            }
+            using (var file = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             using (var reader = new StreamReader(file, ExportEncoding ?? Encoding.UTF8))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
@@ -194,7 +200,12 @@ namespace ChaoticWinformControl.FeatureGroup
                 MessageBox.Show("未选择输出文件");
                 return;
             }
-            using (var file = new FileStream(FileInput.FileName, FileMode.Open, FileAccess.Read))
+            if (FileStateHelper.IsTakeUp(fileName))
+            {
+                Logger.Log("失败", "文件被另一个程序占用");
+                return;
+            }
+            using (var file = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             using (var reader = new StreamReader(file, ExportEncoding ?? Encoding.UTF8))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
