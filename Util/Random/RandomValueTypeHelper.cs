@@ -45,6 +45,24 @@ namespace Util.Random
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <returns></returns>
+        public static short RandomShort(System.Random random, short min, short max)
+        {
+            if (min > max)
+            {
+                short temp = max;
+                max = min;
+                min = temp;
+            }
+
+            return (short)(min == max ? min : random.Next(min, max));
+        }
+        /// <summary>
+        /// 指定区间内的整数
+        /// </summary>
+        /// <param name="random"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
         public static int RandomInt(System.Random random, int min, int max)
         {
             if (min > max)

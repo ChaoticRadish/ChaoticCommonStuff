@@ -24,6 +24,8 @@ namespace Util.Random
         /// </summary>
         public struct RandomConfig
         {
+            public short MinShort { get; set; }
+            public short MaxShort { get; set; }
             public int MinInt { get; set; }
             public int MaxInt { get; set; }
             public long MinLong { get; set; }
@@ -79,6 +81,7 @@ namespace Util.Random
         /// </summary>
         public static RandomConfig DefaultConfig { get; private set; } = new RandomConfig()
         {
+            MinShort = 0,       MaxShort = 50,
             MinInt = 0,         MaxInt = 100,
             MinLong = 0,        MaxLong = 100,
             MinFloat = 0,       MaxFloat = 100,
@@ -132,6 +135,10 @@ namespace Util.Random
             else
             {
                 TypeHelper.SwitchType(type)
+                    .Case<short>(() =>
+                    {
+                        propertyValue = GetRandomShortValue(propertyInfo, random, useConfig);
+                    })
                     .Case<int>(() =>
                     {
                         propertyValue = GetRandomIntValue(propertyInfo, random, useConfig);
@@ -183,6 +190,27 @@ namespace Util.Random
         }
 
         #region 设置值的具体实现
+        /// <summary>
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
+        /// </summary>
+        /// <param name="obj">被赋值对象</param>
+        /// <param name="propertyInfo">属性</param>
+        /// <param name="random"></param>
+        private static object GetRandomShortValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
+        {
+            RandomConfig useConfig = config ?? DefaultConfig;
+            // 取值范围
+            short min = useConfig.MinShort;
+            short max = useConfig.MaxShort;
+
+            ShortRangeAttribute range = propertyInfo.GetCustomAttribute<ShortRangeAttribute>();
+            if (range != null)
+            {
+                min = range.Min;
+                max = range.Max;
+            }
+            return RandomValueTypeHelper.RandomShort(random, min, max);
+        }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
         /// </summary>
@@ -375,12 +403,16 @@ namespace Util.Random
 
             if (typeof(IList).IsAssignableFrom(type))
             {// 是列表的话
-                return GetList(type, random, 0, 100);
+                return GetList(type, random, useConfig.MinCount, useConfig.MaxCount);
             }
             else
             {// 如果不是
                 object output = null;
                 TypeHelper.SwitchType(type)
+                    .Case<short>(() =>
+                    {
+                        output = RandomValueTypeHelper.RandomInt(random, useConfig.MinShort, useConfig.MaxShort);
+                    })
                     .Case<int>(() =>
                     {
                         output = RandomValueTypeHelper.RandomInt(random, useConfig.MinInt, useConfig.MaxInt);
