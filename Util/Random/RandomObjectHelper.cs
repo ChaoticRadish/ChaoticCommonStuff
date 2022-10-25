@@ -2,14 +2,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Util.Random
 {
     /// <summary>
-    /// <para>本帮组类的制作情况: </para>
+    /// <para>本帮助类的制作情况: </para>
     /// <para>int属性: 完成</para>
+    /// <para>char属性: 完成</para>
+    /// <para>short属性: 完成</para>
+    /// <para>long属性: 完成</para>
+    /// <para>float属性: 完成</para>
     /// <para>bool属性: 完成</para>
     /// <para>array属性: 完成</para>
     /// <para>list属性: 完成</para>
@@ -30,8 +35,8 @@ namespace Util.Random
             public int MaxInt { get; set; }
             public long MinLong { get; set; }
             public long MaxLong { get; set; }
-            public long MinFloat { get; set; }
-            public long MaxFloat { get; set; }
+            public float MinFloat { get; set; }
+            public float MaxFloat { get; set; }
             public double MinDouble { get; set; }
             public double MaxDouble { get; set; }
             public int MinStringLength { get; set; }
@@ -53,9 +58,14 @@ namespace Util.Random
             /// </summary>
             public int ListDepth { get; set; }
             /// <summary>
-            /// 大小写
+            /// 大小写(仅用于字符串)
             /// </summary>
             public CaseEnum Case { get; set; }
+
+            /// <summary>
+            /// 字符范围
+            /// </summary>
+            public IList<char> CharRange { get; set; }
 
             /// <summary>
             /// 字符串大小写
@@ -91,6 +101,7 @@ namespace Util.Random
             MinDateTime = new DateTime(2008, 08, 07),   DateTimeRange = 10 * 365,
             ProbabilityTrue = 0.5,
             ProbabilityNull = 0.1,
+            CharRange = InputRevision.Union(RandomValueTypeHelper.CharCommonRangeLetter, RandomValueTypeHelper.CharCommonRangeNumber),
         };
         #endregion
 
@@ -138,6 +149,10 @@ namespace Util.Random
                     .Case<short>(() =>
                     {
                         propertyValue = GetRandomShortValue(propertyInfo, random, useConfig);
+                    })
+                    .Case<char>(() =>
+                    {
+                        propertyValue = GetRandomCharValue(propertyInfo, random, useConfig);
                     })
                     .Case<int>(() =>
                     {
@@ -210,6 +225,20 @@ namespace Util.Random
                 max = range.Max;
             }
             return RandomValueTypeHelper.RandomShort(random, min, max);
+        }
+        /// <summary>
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
+        /// </summary>
+        /// <param name="obj">被赋值对象</param>
+        /// <param name="propertyInfo">属性</param>
+        /// <param name="random"></param>
+        private static object GetRandomCharValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
+        {
+            RandomConfig useConfig = config ?? DefaultConfig;
+            // 取值范围
+            IList<char> range = useConfig.CharRange;
+
+            return RandomValueTypeHelper.RandomChar(random, range);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
@@ -412,6 +441,10 @@ namespace Util.Random
                     .Case<short>(() =>
                     {
                         output = RandomValueTypeHelper.RandomInt(random, useConfig.MinShort, useConfig.MaxShort);
+                    })
+                    .Case<char>(() =>
+                    {
+                        output = RandomValueTypeHelper.RandomChar(random, useConfig.CharRange);
                     })
                     .Case<int>(() =>
                     {

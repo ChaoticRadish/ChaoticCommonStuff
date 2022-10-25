@@ -566,5 +566,27 @@ namespace Util
             "京东",
         };
         #endregion
+
+        #region 合并多个输入
+        /// <summary>
+        /// 将输入的多个列表合并为一个
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="lists"></param>
+        /// <returns></returns>
+        public static List<T> Union<T>(params IList<T>[] lists)
+        {
+            int total = lists.Sum(i => i.Count);
+            List<T> output = new List<T>(total);
+            foreach (IList<T> list in lists)
+            {
+                foreach (T t in list)
+                {
+                    output.Add(t);
+                }
+            }
+            return output;
+        }
+        #endregion
     }
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Util.Random;
 using WinFormsTest.Model;
 
 namespace WinFormsTest.Tests
@@ -18,13 +19,22 @@ namespace WinFormsTest.Tests
         {
             InitializeComponent();
         }
-        BindingList<Model.MiniModel001>? Data;
+        BindingList<Model.MiniModel002>? Data;
 
         public override void TestContent()
         {
             base.TestContent();
 
-            Data = new BindingList<Model.MiniModel001>(Model.MiniModel001.Random());
+            /*
+            Random random = new Random();
+            for (int i = 0; i < 50; i++)
+            {
+                Log("随机字符", RandomValueTypeHelper.RandomChar(random, 
+                    RandomValueTypeHelper.CharCommonRangeLetter, 
+                    RandomValueTypeHelper.CharCommonRangeNumber));
+            }*/
+
+            Data = new BindingList<Model.MiniModel002>(Model.MiniModel002.Random());
             DataShower.DataSource = Data;
         }
 
@@ -38,7 +48,7 @@ namespace WinFormsTest.Tests
         private void ImportButton_Click(object sender, EventArgs e)
         {
             CSVImportForm form = new CSVImportForm();
-            form.SetTargetType(typeof(Model.MiniModel001));
+            form.SetTargetType(typeof(Model.MiniModel002));
             form.Importing += Form_Importing;
             form.Show(this);
         }
@@ -46,14 +56,14 @@ namespace WinFormsTest.Tests
         private bool Form_Importing(object importObj, CSVImportForm.LogController logController)
         {
             logController.Log("写入", "写入对象到dgv");
-            Data!.Add((MiniModel001)importObj);
+            Data!.Add((MiniModel002)importObj);
             Thread.Sleep(500);
             return true;
         }
 
         private void AddTestButton_Click(object sender, EventArgs e)
         {
-            Data!.Add(Util.Random.RandomObjectHelper.GetObject<MiniModel001>());
+            Data!.Add(Util.Random.RandomObjectHelper.GetObject<MiniModel002>());
             DataShower.Invalidate();
         }
     }

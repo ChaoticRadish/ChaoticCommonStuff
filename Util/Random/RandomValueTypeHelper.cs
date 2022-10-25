@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,81 @@ namespace Util.Random
 {
     public static class RandomValueTypeHelper
     {
+        static RandomValueTypeHelper()
+        {
+            // 初始化常用范围
+            CharCommonRangeUpperLetter = new char[26];
+            CharCommonRangeLowerLetter = new char[26];
+            CharCommonRangeLetter = new char[26 * 2];
+            for (int i = 0; i < 26; i++)
+            {
+                CharCommonRangeUpperLetter[i] = (char)(i + 'A');
+                CharCommonRangeLowerLetter[i] = (char)(i + 'a');
+                CharCommonRangeLetter[2 * i] = (char)(i + 'A');
+                CharCommonRangeLetter[2 * i + 1] = (char)(i + 'a');
+            }
+            CharCommonRangeNumber = new char[10];
+            for (int i = 0; i < 10; i++)
+            {
+                CharCommonRangeNumber[i] = (char)(i + '0');
+            }
+        }
+        #region 常用范围
+        /// <summary>
+        /// 大写英文字母
+        /// </summary>
+        public static char[] CharCommonRangeUpperLetter;
+        /// <summary>
+        /// 小写英文字母
+        /// </summary>
+        public static char[] CharCommonRangeLowerLetter;
+        /// <summary>
+        /// 大小写英文字母
+        /// </summary>
+        public static char[] CharCommonRangeLetter;
+        /// <summary>
+        /// 数字
+        /// </summary>
+        public static char[] CharCommonRangeNumber;
+
+        #endregion
+        /// <summary>
+        /// 随机字符
+        /// </summary>
+        /// <param name="random"></param>
+        /// <param name="charRanges"></param>
+        /// <returns></returns>
+        public static char RandomChar(System.Random random, params IList<char>[] charRanges)
+        {
+            char[] range;
+            int total;
+            switch (charRanges.Length)
+            {
+                case 0:
+                    throw new ArgumentException("没有输入char的取值范围", nameof(charRanges));
+                case 1:
+                    total = charRanges[0].Count;
+                    range = charRanges[0].ToArray();
+                    break;
+                default:
+                    total = charRanges.Sum(i => i.Count);
+                    range = new char[total];
+                    int index = 0;
+                    foreach (IList<char> charRange in charRanges)
+                    {
+                        foreach (char c in charRange)
+                        {
+                            range[index++] = c;
+                        }
+                    }
+                    break;
+
+            }
+            if (total == 0)
+                throw new ArgumentException("输入的char取值范围是空的", nameof(charRanges));
+            return range[random.Next(total)];
+        }
+
         /// <summary>
         /// 随机布尔值
         /// </summary>
