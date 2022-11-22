@@ -11,8 +11,28 @@ namespace Util
     /// </summary>
     public static class TimeHelper
     {
+
         /// <summary>
-        /// 取得当天的开始时间
+        /// 取得当天的开始时间 (实际时间)
+        /// </summary>
+        /// <param name="ticks"></param>
+        /// <returns></returns>
+        public static DateTime GetDayStartTimeInFact(DateTime time)
+        {
+            return new DateTime(time.Year, time.Month, time.Day);
+        }
+        /// <summary>
+        /// 取得输入时间第二天的开始时间 (实际时间)
+        /// </summary>
+        /// <param name="ticks"></param>
+        /// <returns></returns>
+        public static DateTime GetNextDayStartTimeInFact(DateTime time)
+        {
+            return GetDayStartTimeInFact(time.AddDays(1));
+        }
+
+        /// <summary>
+        /// 取得当天的开始时间 (工作时间)
         /// </summary>
         /// <param name="ticks"></param>
         /// <returns></returns>
@@ -22,7 +42,7 @@ namespace Util
             return new DateTime(temp.Year, temp.Month, temp.Day, 9, 30, 0);
         }
         /// <summary>
-        /// 取得当天的结束时间
+        /// 取得当天的结束时间 (工作时间)
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
@@ -32,7 +52,7 @@ namespace Util
         }
 
         /// <summary>
-        /// 取得当天的开始时间
+        /// 取得当天的开始时间 (工作时间)
         /// </summary>
         /// <param name="ticks"></param>
         /// <returns></returns>
@@ -42,7 +62,7 @@ namespace Util
             return new DateTime(temp.Year, temp.Month, temp.Day, 9, 30, 0);
         }
         /// <summary>
-        /// 取得当天的结束时间
+        /// 取得当天的结束时间 (工作时间)
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
@@ -51,7 +71,7 @@ namespace Util
             return GetDayEndTimeAsDateTime(time).Ticks;
         }
         /// <summary>
-        /// 取得当天的结束时间
+        /// 取得当天的结束时间 (工作时间)
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>

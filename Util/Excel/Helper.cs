@@ -16,5 +16,21 @@ namespace Util.Excel
         {
             return "xlsx(2007或其后版本)|*.xlsx|xls(2003版本)|*.xls";
         }
+        /// <summary>
+        /// 取得xls的过滤器
+        /// </summary>
+        /// <returns></returns>
+        public static string GetXlsFilter()
+        {
+            return "xls(2003版本)|*.xls";
+        }
+        /// <summary>
+        /// 取得xlsx的过滤器
+        /// </summary>
+        /// <returns></returns>
+        public static string GetXlsxFilter()
+        {
+            return "xlsx(2007或其后版本)|*.xlsx";
+        }
     }
 }

@@ -1,17 +1,20 @@
 ﻿using NPOI.HSSF.UserModel;
 using NPOI.HSSF.Util;
+using NPOI.POIFS.Crypt.Dsig;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.Streaming;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Util.Mission;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace Util.Excel
 {
@@ -64,6 +67,10 @@ namespace Util.Excel
         /// 列配置
         /// </summary>
         private readonly Dictionary<int, ColumnOption> ColumnOptions = new Dictionary<int, ColumnOption>();
+        /// <summary>
+        /// 列字体配置
+        /// </summary>
+        private readonly Dictionary<int, IFont> ColumnFontOptions = new Dictionary<int, IFont>();
         /// <summary>
         /// 数据
         /// </summary>
@@ -518,6 +525,7 @@ namespace Util.Excel
             IRow headRow = GetRow(rowIndex);
             // 行高
             headRow.HeightInPoints = SheetOption.HeadHeight;
+            ColumnFontOptions.Clear();
             // 赋值
             for (int i = 0; i < ColumnOptions.Count; i++)
             {
@@ -562,6 +570,13 @@ namespace Util.Excel
                 {
                     Sheet.SetColumnWidth(columnIndex, option.ColumnWidth);
                 }
+
+                // 提前实例化列字体
+                ColumnFontOptions.Add(option.Index, GetFontAsSetting(new FontSetting()
+                {
+                    Height = option.FontHeight,
+                    IsBold = option.FontIsBold,
+                }));
             }
             // 行索引自增
             rowIndex++;
@@ -570,33 +585,17 @@ namespace Util.Excel
             //---- 数据行
             int dataRowStartIndex = rowIndex;
             this.UpdateProgress(18f, "写入数据行");
+            // 通用设置对象
+            ICellStyle oddRowStyle = GetCellStyleAsColor(new StyleColor()
+            {
+                BackColor = SheetOption.OddRowBackColor,
+            });
+            ICellStyle EvenRowStyle = GetCellStyleAsColor(new StyleColor()
+            {
+                BackColor = SheetOption.EvenRowBackColor,
+            });
             foreach (object data in Datas)
             {
-                bool isExpandoObject = data is System.Dynamic.ExpandoObject;
-                object getPropertyValue(string propertyName)
-                {
-                    if (isExpandoObject)
-                    {
-                        var dic = (IDictionary<string, object>)data;
-                        return dic.ContainsKey(propertyName) ? dic[propertyName] : null;
-                    }
-                    else
-                    {
-                        Type type = data.GetType();
-                        // 属性信息
-                        PropertyInfo propertyInfo = type.GetProperty(propertyName);
-                        if (propertyInfo != null)
-                        {
-                            // 取得数据
-                            return propertyInfo.GetValue(data, null);
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-                }
-
                 IRow row = GetRow(rowIndex);
 
                 // 是奇数行
@@ -630,14 +629,8 @@ namespace Util.Excel
 
 
                     // 样式
-                    ICellStyle style = GetCellStyleAsColor(new StyleColor()
-                    {
-                        BackColor = isOddRow ? SheetOption.OddRowBackColor : SheetOption.EvenRowBackColor,
-                    });
-                    IFont font = GetFontAsSetting(new FontSetting() {
-                        Height = option.FontHeight,
-                        IsBold = option.FontIsBold,
-                    });
+                    ICellStyle style = isOddRow ? oddRowStyle : EvenRowStyle;
+                    IFont font = ColumnFontOptions[option.Index];
                     style.SetFont(font);
                     style.BorderLeft = BorderStyle.DashDot;
                     style.BorderRight = BorderStyle.DashDot;
@@ -655,7 +648,7 @@ namespace Util.Excel
                     }
                     else
                     {
-                        object value = getPropertyValue(option.BindingPropertyName);
+                        object value = GetPropertyValue(option.BindingPropertyName, data);
                         if (value == null) continue;
                         // 单元格赋值
                         SetValue(cell, value);
@@ -783,6 +776,40 @@ namespace Util.Excel
             }
             return true;
         }
+
+        #region 表格填充
+        /// <summary>
+        /// 取得指定属性的对应值
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private object GetPropertyValue(string propertyName, object data)
+        {
+            bool isExpandoObject = data is System.Dynamic.ExpandoObject;
+            if (isExpandoObject)
+            {
+                var dic = (IDictionary<string, object>)data;
+                return dic.ContainsKey(propertyName) ? dic[propertyName] : null;
+            }
+            else
+            {
+                Type type = data.GetType();
+                // 属性信息
+                PropertyInfo propertyInfo = type.GetProperty(propertyName);
+                if (propertyInfo != null)
+                {
+                    // 取得数据
+                    return propertyInfo.GetValue(data, null);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        #endregion
 
         #region 私有方法
 
@@ -919,6 +946,31 @@ namespace Util.Excel
             else if (type == typeof(bool))
             {
                 cell.SetCellValue((bool)value);
+                return;
+            }
+            else if (type == typeof(int))
+            {
+                cell.SetCellValue((int)value);
+                return;
+            }
+            else if (type == typeof(short))
+            {
+                cell.SetCellValue((short)value);
+                return;
+            }
+            else if (type == typeof(long))
+            {
+                cell.SetCellValue((long)value);
+                return;
+            }
+            else if (type == typeof(float))
+            {
+                cell.SetCellValue((float)value);
+                return;
+            }
+            else if (type == typeof(double))
+            {
+                cell.SetCellValue((double)value);
                 return;
             }
             else if (type == typeof(IRichTextString))
