@@ -9,13 +9,9 @@ namespace Util.Excel.Attributes
     /// <summary>
     /// 列名
     /// </summary>
-    public class ColumnNameAttribute : Attribute
+    public class ColumnNameAttribute : Common.Attributes.ColumnNameAttribute
     {
-        public ColumnNameAttribute(string name)
-        {
-            Name = name;
-        }
+        public ColumnNameAttribute(string name) : base(name) { }
 
-        public string Name { get; set; }
     }
 }
