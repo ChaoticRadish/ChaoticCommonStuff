@@ -11,10 +11,15 @@ using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using System.Windows.Input;
+using Util;
+using Util.Config;
+using Util.String;
 
 namespace WinFormsTest
 {
@@ -39,7 +44,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.ProgessTest001>();
+            SetTest<Tests.SocketTest001>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 
@@ -65,6 +70,7 @@ namespace WinFormsTest
 
             Harmony = new Harmony(nameof(MainForm));
             CommonFixMethod = new HarmonyMethod(typeof(MainForm).GetMethod(nameof(TriggerUpdateMoitorings)));
+
         }
 
         #region 监听
@@ -93,6 +99,34 @@ namespace WinFormsTest
         private bool IsMoitoring { get; set; } = false;
         #endregion
 
+        #region 对象详情
+        private ObjDetailForm1? ObjDetailForm { get; set; }
+
+        /// <summary>
+        /// 显示对象详情
+        /// </summary>
+        /// <param name="getObjFunc"></param>
+        /// <param name="objInfo">对象相关信息</param>
+        public void ShowObjDetail(Func<object> getObjFunc, string? objInfo = null)
+        {
+            this.AutoBeginInvoke(()=>{
+                if (ObjDetailForm == null)
+                {
+                    ObjDetailForm = new ObjDetailForm1();
+                    ObjDetailForm.FormClosing += (sender, e) =>
+                    {
+                        e.Cancel = true;
+                        ObjDetailForm.Hide();
+                    };
+                }
+                ObjDetailForm.Text = "对象详情: " + objInfo;
+                ObjDetailForm.GetObjFunc = getObjFunc;
+                ObjDetailForm.TopMost = true;
+                ObjDetailForm.Show();
+            });
+        }
+        #endregion
+
         #region 单例
         public static MainForm? Instance { get; set; }
         /// <summary>
@@ -100,7 +134,7 @@ namespace WinFormsTest
         /// </summary>
         public static void TriggerUpdateMoitorings()
         {
-            Instance?.UpdateAllMoitoring();
+            Instance?.AutoBeginInvoke(Instance.UpdateAllMoitoring);
         }
 
         #endregion
@@ -162,6 +196,32 @@ namespace WinFormsTest
         #endregion
 
         #region 监听
+
+
+        #region 预览
+        private void MoitoringsListView_ItemMouseHover(object sender, ListViewItemMouseHoverEventArgs e)
+        {
+            MoitoringItem item = (MoitoringItem)e.Item.Tag;
+            if (item != null)
+            {
+                MoitoringsListViewToolTip.Show(item.ValuePreview(true), MoitoringsListView,
+                    item.ListViewItem!.Bounds.Left, item.ListViewItem.Bounds.Bottom);
+            }
+        }
+        private void MoitoringsListView_MouseLeave(object sender, EventArgs e)
+        {
+            MoitoringsListViewToolTip.Hide(MoitoringsListView);
+        }
+        private void MoitoringsListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            ListViewItem listViewItem = MoitoringsListView.GetItemAt(e.X, e.Y);
+            MoitoringItem item = (MoitoringItem)listViewItem.Tag;
+            if (item != null)
+            {
+                ShowObjDetail(() => item.GetValue(), $"监听项-{item.Prop?.Name ?? "null"}");
+            }
+        }
+        #endregion
         private Dictionary<string, List<MoitoringItem>> Moitorings { get; set; } = new Dictionary<string, List<MoitoringItem>>();
 
         /// <summary>
@@ -175,7 +235,8 @@ namespace WinFormsTest
                 foreach (MoitoringItem item in Moitorings[key])
                 {
                     object? newValue = item.GetValue();
-                    if (newValue != item.LastValue)
+                    if (item.PropertyType == null) continue;
+                    else if (!item.PropertyType!.IsValueType || newValue != item.LastValue)
                     {
                         item.LastValue = newValue;
                         if (item.ListViewItem != null)
@@ -267,10 +328,46 @@ namespace WinFormsTest
             {
                 return Prop!.GetMethod.Invoke(Obj, null);
             }
+            /// <summary>
+            /// 获取监听属性当前值的预览
+            /// </summary>
+            /// <param name="full">是否返回更为完整的文本, 比如列表项</param>
+            /// <returns></returns>
+            public string? ValuePreview(bool full)
+            {
+                object value = GetValue();
+                if (value == null) return null;
+                else
+                {
+                    if (PropertyType.IsEnumerable())
+                    {
+                        IEnumerable temp =  (IEnumerable)value;
+                        int count = 0;
+                        List<string> strs = new List<string>();
+                        foreach (object obj in temp)
+                        {
+                            count++;
+                            strs.Add(obj.ToString());
+                        }
+                        if (full)
+                        {
+                            return $"{PropertyType?.Name}[{count}]{{\n{StringHelper.Concat(strs, "\n")}\n}}";
+                        }
+                        else
+                        {
+                            return $"{PropertyType?.Name}[{count}]";
+                        }
+                    }
+                    else
+                    {
+                        return value.ToString();
+                    }
+                }
+            }
 
             public override string ToString()
             {
-                return $"[{Prop!.Name}] = {GetValue()}";
+                return $"[{Prop!.Name}] = {ValuePreview(false)}";
             }
         }
         #endregion

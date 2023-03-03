@@ -53,6 +53,16 @@ namespace ChaoticWinformControl
 
         #region 控制方法
         /// <summary>
+        /// 清空所有日志
+        /// </summary>
+        public void Clear()
+        {
+            Datas.Clear();
+            TitleComboBox.SelectedIndex = -1;
+            ContentShower.Clear();
+        }
+
+        /// <summary>
         /// 设置标题默认对应的颜色
         /// </summary>
         /// <param name="title"></param>
@@ -79,6 +89,18 @@ namespace ChaoticWinformControl
             {
                 Title = title,
                 Content = content,
+            });
+        }
+        /// <summary>
+        /// 简单的Log一个信息, 自动在UI线程同步调用
+        /// </summary>
+        /// <param name="tiile"></param>
+        /// <param name="content"></param>
+        public void SimpleLogAutoInvoke(string tiile, string content)
+        {
+            this.AutoInvoke(() =>
+            {
+                SimpleLog(tiile, content);
             });
         }
         /// <summary>

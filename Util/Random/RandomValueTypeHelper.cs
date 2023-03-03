@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPOI.SS.Formula.Functions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -223,6 +224,55 @@ namespace Util.Random
             }
 
             return min == max ? min : (float)random.NextDouble() * (max - min) + min;
+        }
+
+        /// <summary>
+        /// 随机获取指定枚举类型
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="random"></param>
+        /// <returns></returns>
+        public static T RandomEnum<T>(System.Random random)
+            where T : Enum
+        {
+            Type type = typeof(T);
+            T[] values = Enum.GetValues(type) as T[];
+            return values[random.Next(0, values.Length)];
+        }
+        /// <summary>
+        /// 随机获取指定枚举类型
+        /// </summary>
+        /// <param name="random"></param>
+        /// <param name="type">需要随机生成枚举对象的类型</param>
+        /// <returns></returns>
+        public static object RandomEnum(System.Random random, Type type)
+        {
+            if (!type.IsEnum)
+            {
+                throw new ArgumentException($"输入类型 {type.FullName} 不是枚举");
+            }
+            Array array = Enum.GetValues(type);
+            return array.GetValue(random.Next(0, array.Length));
+        }
+
+        /// <summary>
+        /// 随机获取指定枚举类型
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T RandomEnum<T>()
+            where T : Enum
+        {
+            return RandomEnum<T>(new System.Random());
+        }
+        /// <summary>
+        /// 随机获取指定枚举类型
+        /// </summary>
+        /// <param name="type">需要随机生成枚举对象的类型</param>
+        /// <returns></returns>
+        public static object RandomEnum(Type type)
+        {
+            return RandomEnum(new System.Random(), type);
         }
     }
 }

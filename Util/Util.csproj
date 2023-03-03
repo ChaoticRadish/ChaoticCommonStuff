@@ -10,6 +10,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <COMReference Include="DSOFile">
+      <VersionMinor>1</VersionMinor>
+      <VersionMajor>2</VersionMajor>
+      <Guid>58968145-cf00-4341-995f-2ee093f6aba3</Guid>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="O2S.Components.PDFRender4NET">
       <HintPath>..\..\ChaoticRadish\Missy\Util\O2S.Components.PDFRender4NET.dll</HintPath>
     </Reference>
@@ -38,6 +55,11 @@
 	  <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
 	  <PackageReference Include="System.Data.SQLite.EF6" Version="1.0.113.6" />
 	  <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.113.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="DLL\O2S.Components.PDFRender4NET.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

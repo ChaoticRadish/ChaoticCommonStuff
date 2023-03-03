@@ -36,11 +36,12 @@
             this.GlobalListView = new System.Windows.Forms.ListView();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.Logger = new ChaoticWinformControl.LogShowerBox();
             this.GlobalItemRightMenuMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.Value_Bool_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.NoSupport_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Value_String_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.NoSupport_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MoitoringsListViewToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.Logger = new ChaoticWinformControl.LogShowerBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -103,6 +104,9 @@
             this.MoitoringsListView.TabIndex = 1;
             this.MoitoringsListView.UseCompatibleStateImageBehavior = false;
             this.MoitoringsListView.View = System.Windows.Forms.View.List;
+            this.MoitoringsListView.ItemMouseHover += new System.Windows.Forms.ListViewItemMouseHoverEventHandler(this.MoitoringsListView_ItemMouseHover);
+            this.MoitoringsListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MoitoringsListView_MouseDoubleClick);
+            this.MoitoringsListView.MouseLeave += new System.EventHandler(this.MoitoringsListView_MouseLeave);
             // 
             // MoitoringTimeLabel
             // 
@@ -145,14 +149,6 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "监听对象";
             // 
-            // Logger
-            // 
-            this.Logger.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.Logger.Location = new System.Drawing.Point(0, 0);
-            this.Logger.Name = "Logger";
-            this.Logger.Size = new System.Drawing.Size(1064, 259);
-            this.Logger.TabIndex = 0;
-            // 
             // GlobalItemRightMenuMenuStrip
             // 
             this.GlobalItemRightMenuMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -160,28 +156,37 @@
             this.Value_String_ToolStripMenuItem,
             this.NoSupport_ToolStripMenuItem});
             this.GlobalItemRightMenuMenuStrip.Name = "GlobalItemRightMenuMenuStrip";
-            this.GlobalItemRightMenuMenuStrip.Size = new System.Drawing.Size(181, 92);
+            this.GlobalItemRightMenuMenuStrip.Size = new System.Drawing.Size(149, 70);
             // 
             // Value_Bool_ToolStripMenuItem
             // 
             this.Value_Bool_ToolStripMenuItem.Name = "Value_Bool_ToolStripMenuItem";
-            this.Value_Bool_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.Value_Bool_ToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.Value_Bool_ToolStripMenuItem.Text = "切换bool值";
             this.Value_Bool_ToolStripMenuItem.Click += new System.EventHandler(this.Value_Bool_ToolStripMenuItem_Click);
+            // 
+            // Value_String_ToolStripMenuItem
+            // 
+            this.Value_String_ToolStripMenuItem.Name = "Value_String_ToolStripMenuItem";
+            this.Value_String_ToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.Value_String_ToolStripMenuItem.Text = "修改字符串";
+            this.Value_String_ToolStripMenuItem.Click += new System.EventHandler(this.Value_String_ToolStripMenuItem_Click);
             // 
             // NoSupport_ToolStripMenuItem
             // 
             this.NoSupport_ToolStripMenuItem.Enabled = false;
             this.NoSupport_ToolStripMenuItem.Name = "NoSupport_ToolStripMenuItem";
-            this.NoSupport_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.NoSupport_ToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.NoSupport_ToolStripMenuItem.Text = "不支持的类型";
             // 
-            // Value_String_ToolStripMenuItem
+            // Logger
             // 
-            this.Value_String_ToolStripMenuItem.Name = "Value_String_ToolStripMenuItem";
-            this.Value_String_ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.Value_String_ToolStripMenuItem.Text = "修改字符串";
-            this.Value_String_ToolStripMenuItem.Click += new System.EventHandler(this.Value_String_ToolStripMenuItem_Click);
+            this.Logger.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Logger.Location = new System.Drawing.Point(0, 0);
+            this.Logger.Name = "Logger";
+            this.Logger.Size = new System.Drawing.Size(1064, 259);
+            this.Logger.TabIndex = 0;
+            this.Logger.TimeFormat = "yyyy-MM-dd hh:mm:ss:fff";
             // 
             // MainForm
             // 
@@ -219,5 +224,6 @@
         private ToolStripMenuItem Value_Bool_ToolStripMenuItem;
         private ToolStripMenuItem NoSupport_ToolStripMenuItem;
         private ToolStripMenuItem Value_String_ToolStripMenuItem;
+        private ToolTip MoitoringsListViewToolTip;
     }
 }

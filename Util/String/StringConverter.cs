@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,40 @@ namespace Util.String
     /// </summary>
     public static class StringConverter
     {
+        private static List<string> TrueStrs = new List<string>()
+        {
+            "是", "ture", "对", "yes", "t", "1"
+        };
+        private static List<string> FalseStrs = new List<string>()
+        {
+            "否", "flase", "不对", "no", "f", "0"
+        };
+
+        /// <summary>
+        /// 尝试将输入的字符串转换为布尔值
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns>转换失败时返回null</returns>
+        public static bool? ConvertBool(string str)
+        {
+            if (bool.TryParse(str, out bool v))
+            {
+                return v;
+            }
+            else
+            {
+                str = str.ToLower().Trim();
+                if (TrueStrs.Contains(str))
+                {
+                    return true;
+                }
+                else if (FalseStrs.Contains(str))
+                {
+                    return false;
+                }
+            }
+            return null;
+        }
         /// <summary>
         /// 尝试将输入的字符串转换为指定类型
         /// </summary>
@@ -37,14 +72,12 @@ namespace Util.String
             }
             else if (targetType.IsEnum)
             {
-                try
+                object obj = EnumHelper.Convert(targetType, str);
+                if (obj != null)
                 {
-                    object enumObj = Enum.Parse(targetType, str);
-
                     isSuccess = true;
-                    return enumObj;
+                    return obj;
                 }
-                catch { }
             }
             else if (targetType == typeof(bool))
             {
@@ -52,6 +85,20 @@ namespace Util.String
                 {
                     isSuccess = true;
                     return v;
+                }
+                else
+                {
+                    str = str.ToLower().Trim();
+                    if (TrueStrs.Contains(str))
+                    {
+                        isSuccess = true;
+                        return true;
+                    }
+                    else if (FalseStrs.Contains(str))
+                    {
+                        isSuccess = true;
+                        return false;
+                    }
                 }
             }
             else if (targetType == typeof(char))
@@ -157,6 +204,22 @@ namespace Util.String
                     isSuccess = true;
                     return v;
                 }
+            }
+            else if (targetType.IsEnumerable())
+            {
+                IList list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(targetType.GenericTypeArguments[0]));
+                if (!string.IsNullOrEmpty(str))
+                {
+                    // 取得数据类型
+                    Type objType = targetType.GenericTypeArguments[0];
+                    IEnumerable<object> objs = str.Split(';', '；', '|').Select(i => i.Trim()).Where(i => !string.IsNullOrEmpty(i)).Select(i => Convert(i, objType));
+                    foreach (object obj in objs)
+                    {
+                        list.Add(obj);
+                    }
+                }
+                isSuccess = true;
+                return list;
             }
             isSuccess = false;
             return null;

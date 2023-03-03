@@ -188,7 +188,11 @@ namespace Util.Random
                     })
                     .Default(() =>
                     {
-                        if (type.IsClass)
+                        if (type.IsEnum)
+                        {
+                            propertyValue = GetRandomEnumValue(propertyInfo, random, useConfig);
+                        }
+                        else if (type.IsClass)
                         {
                             propertyValue = GetObject(type, random);
                         }
@@ -274,6 +278,16 @@ namespace Util.Random
                 (config == null ? RandomValueTypeHelper.RandomBool(random) : RandomValueTypeHelper.RandomTrue(config.Value.ProbabilityTrue))
                 :
                 RandomValueTypeHelper.RandomTrue(random, probability.True);
+        }
+        /// <summary>
+        /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
+        /// </summary>
+        /// <param name="obj">被赋值对象</param>
+        /// <param name="propertyInfo">属性</param>
+        /// <param name="random"></param>
+        private static object GetRandomEnumValue(PropertyInfo propertyInfo, System.Random random, RandomConfig? config = null)
+        {
+            return RandomValueTypeHelper.RandomEnum(random, propertyInfo.PropertyType);
         }
         /// <summary>
         /// 为对象的指定属性获取随机值, 不会判断, 需要确保输入的参数不为空
