@@ -73,7 +73,7 @@ namespace Util.Config
             {
                 return StringHelper.Concat(((IEnumerable<string>)obj).ToList(), "; ", false);
             }
-            else if (obj.GetType().IsEnumerable() 
+            else if (obj.GetType().IsEnumerable()
                 && obj.GetType().GenericTypeArguments.Length == 1
                 && obj.GetType().GenericTypeArguments[0].IsEnum)
             {
@@ -143,7 +143,7 @@ namespace Util.Config
             where T : new()
         {
             SaveConfig(config, (string)null);
-        }
+            }
         /// <summary>
         /// 使用指定实现保存配置信息
         /// </summary>
@@ -160,13 +160,13 @@ namespace Util.Config
             if (string.IsNullOrEmpty(implName))
             {
                 impl = DefaultImpl;
-                t.ExistCustomAttribute<ConfigReadWriteImplAttribute>((attr) =>
+            t.ExistCustomAttribute<ConfigReadWriteImplAttribute>((attr) =>
+            {
+                if (Impls.ContainsKey(attr.Name))
                 {
-                    if (Impls.ContainsKey(attr.Name))
-                    {
-                        impl = Impls[attr.Name];
-                    }
-                });
+                    impl = Impls[attr.Name];
+                }
+            });
             }
             else
             {
@@ -221,6 +221,7 @@ namespace Util.Config
 
 
 
+
     }
     public class DefaultAttribute : System.Attribute
     {
@@ -232,7 +233,7 @@ namespace Util.Config
                 DefaultValue = defaultValue;
             }
             else
-            {
+        {
                 DefaultValue = debugValue;
             }
 #else

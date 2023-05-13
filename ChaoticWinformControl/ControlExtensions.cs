@@ -12,6 +12,45 @@ namespace ChaoticWinformControl
     public static class ControlExtensions
     {
         /// <summary>
+        /// 自动检查是否需要使用BeginInvoke方法
+        /// </summary>
+        /// <param name="c"></param>
+        /// <param name="method"></param>
+        /// <param name="args"></param>
+        public static void AutoBeginInvoke(this Control c, Delegate method, params object[] args)
+        {
+            if (c.InvokeRequired)
+            {
+                c.BeginInvoke(method, args);
+            }
+            else
+            {
+                method.DynamicInvoke(args);
+            }
+        }
+        /// <summary>
+        /// 自动检查是否需要使用BeginInvoke方法
+        /// </summary>
+        /// <param name="c"></param>
+        /// <param name="method"></param>
+        /// <param name="args"></param>
+        public static void AutoBeginInvoke(this Control c, Action method, params object[] args)
+        {
+            if (c == null || c.IsDisposed)
+            {
+                return;
+            }
+            if (c.InvokeRequired)
+            {
+                c.BeginInvoke(method, args);
+            }
+            else
+            {
+                method.DynamicInvoke(args);
+            }
+        }
+
+        /// <summary>
         /// 自动检查是否需要使用Invoke方法
         /// </summary>
         /// <param name="c"></param>

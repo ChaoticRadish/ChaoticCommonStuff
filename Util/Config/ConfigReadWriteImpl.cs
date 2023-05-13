@@ -75,7 +75,7 @@ namespace Util.Config
         public void SaveConfig<T>(T config) where T : new()
         {
             Type t = typeof(T);
-            Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            System.Configuration.Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
             PropertyInfo[] properties = t.GetProperties();
             foreach (PropertyInfo property in properties)
@@ -121,7 +121,7 @@ namespace Util.Config
         {
             string output;
 
-            Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            System.Configuration.Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 #if DEBUG
             output = configuration.AppSettings.Settings[GetNodeKey(configType, property, true)]?.Value;
             if (output == null)

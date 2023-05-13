@@ -44,5 +44,10 @@
 	  <PackageReference Include="System.Data.SQLite.EF6" Version="1.0.113.6" />
 	  <PackageReference Include="System.Data.SQLite.Linq" Version="1.0.113.6" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="DLL\O2S.Components.PDFRender4NET.dll">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

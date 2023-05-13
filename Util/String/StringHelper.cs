@@ -305,5 +305,19 @@ namespace Util.String
             return output;
         }
         #endregion
+
+        #region 字节
+        /// <summary>
+        /// 将字符串转换为byte数组
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="encoding">字符集, 默认使用 <see cref="Encoding.ASCII"/></param>
+        /// <returns></returns>
+        public static byte[] ToByteArray(string str, Encoding encoding = null)
+        {
+            encoding = encoding ?? Encoding.ASCII;
+            return encoding.GetBytes(str);
+        }
+        #endregion
     }
 }
