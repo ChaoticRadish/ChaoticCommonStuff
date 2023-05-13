@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="O2S.Components.PDFRender4NET">
       <HintPath>..\..\ChaoticRadish\Missy\Util\O2S.Components.PDFRender4NET.dll</HintPath>
     </Reference>
