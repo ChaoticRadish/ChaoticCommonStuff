@@ -24,6 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="ValueBox\FloatBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="ValueBox\IntegerBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="List\ControlList.cs">
       <SubType>UserControl</SubType>
     </Compile>
