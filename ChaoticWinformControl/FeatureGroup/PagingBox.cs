@@ -41,6 +41,11 @@ namespace ChaoticWinformControl.FeatureGroup
                     LastButton.Enabled = !readOnly;
                     JumpButton.Enabled = !readOnly;
                     PageInput.ReadOnly = readOnly;
+
+                    foreach (PageButton button in pageButtons)
+                    {
+                        button.Button.Enabled = !readOnly;
+                    }
                 }
             }
         }
