@@ -223,7 +223,10 @@ namespace ChaoticWinformControl.FeatureGroup
                 };
                 button.Button.Click += (sender, arg) =>
                 {
-                    CurrentIndex = button.PageIndex;
+                    if (button.PageIndex > 0)
+                    {
+                        CurrentIndex = button.PageIndex;
+                    }
                 };
                 button.IsCurrentPageIndex = false;
                 pageButtons.Add(button);
@@ -233,11 +236,20 @@ namespace ChaoticWinformControl.FeatureGroup
             for (int i = 0; i < pageButtons.Count; i++)
             {
                 PageButton button = pageButtons[i];
+
                 button.PageIndex = i + needShowStart + startOffset;
+                button.Button.Text = (i + needShowStart + startOffset).ToString();
+                
+                if ((i == 0 && button.PageIndex != 1 && startOffset == 0)
+                    || (button.PageIndex == needShowEnd && needShowEnd != TotalPage))
+                {
+                    button.PageIndex = -1;
+                    button.Button.Text = "...";
+                }
+
                 button.Visable = i < needShowCount;
                 if (!button.Visable) continue;
 
-                button.Button.Text = (i + needShowStart + startOffset).ToString();
                 button.IsCurrentPageIndex = i + needShowStart + startOffset == CurrentIndex;
 
                 button.Button.Size = new Size(PageButtonWidth, PageButtonInnerArea.Height);
