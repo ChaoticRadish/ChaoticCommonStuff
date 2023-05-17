@@ -73,6 +73,7 @@ namespace ChaoticWinformControl.FeatureGroup
             set
             {
                 totalCount = value;
+                UpdatePageButtons();
             }
         }
         private int totalCount = 100;
