@@ -393,6 +393,24 @@ namespace Util
                 return _stopwatch.ElapsedMilliseconds * 0.001;
             }
         }
+        /// <summary>
+        /// 获取当前实例运行到现在的总时间 (毫秒)
+        /// </summary>
+        public double ElapseMilliseconds
+        {
+            get
+            {
+                switch (Mode)
+                {
+                    case TimerMode.Normal:
+                        return _stopwatch.ElapsedMilliseconds;
+                    case TimerMode.Manual:
+                    case TimerMode.ManualCountdown:
+                        return _timer / 1000;
+                }
+                return _stopwatch.ElapsedMilliseconds;
+            }
+        }
 
         public override string ToString()
         {

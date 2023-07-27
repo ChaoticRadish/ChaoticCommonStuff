@@ -132,7 +132,7 @@ namespace Util.Config
             #endregion
 
             #region 赋值
-            PropertyInfo[] properties = t.GetProperties();
+            PropertyInfo[] properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo property in properties)
             {
                 if (property.SetMethod == null) { continue; }
@@ -281,7 +281,7 @@ namespace Util.Config
 
             // 获取配置值
             JObject obj = new JObject();
-            PropertyInfo[] properties = t.GetProperties();
+            PropertyInfo[] properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo property in properties)
             {
                 // object value = property.GetValue(config);

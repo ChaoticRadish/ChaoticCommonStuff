@@ -59,7 +59,7 @@ namespace Util.Config
             Type t = typeof(T);
             T output = new T();
 
-            PropertyInfo[] properties = t.GetProperties();
+            PropertyInfo[] properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo property in properties)
             {
                 if (property.SetMethod == null) continue;
@@ -77,7 +77,7 @@ namespace Util.Config
             Type t = typeof(T);
             System.Configuration.Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
-            PropertyInfo[] properties = t.GetProperties();
+            PropertyInfo[] properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo property in properties)
             {
                 if (property.SetMethod == null) continue;

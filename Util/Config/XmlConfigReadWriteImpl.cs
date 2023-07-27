@@ -76,7 +76,7 @@ namespace Util.Config
                         nodes.Add(propertyName, node);
                     }
                 }
-                PropertyInfo[] properties = t.GetProperties();
+                PropertyInfo[] properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
                 foreach (PropertyInfo property in properties)
                 {
                     object obj = null;
@@ -159,7 +159,7 @@ namespace Util.Config
 
             Type t = typeof(T);
 
-            PropertyInfo[] properties = t.GetProperties();
+            PropertyInfo[] properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo property in properties)
             {
                 if (property.SetMethod == null) continue;
