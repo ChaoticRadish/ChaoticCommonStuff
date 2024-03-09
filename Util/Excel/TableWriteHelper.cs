@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Util.Mission;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace Util.Excel
 {
@@ -854,7 +853,7 @@ namespace Util.Excel
                 default:
                 case FormatEnum.XSSF:
                     XSSFCellStyle xssfStyle = (XSSFCellStyle)output;
-                    xssfStyle.SetFillForegroundColor(new XSSFColor(color.BackColor));
+                    xssfStyle.SetFillForegroundColor(new XSSFColor(ColorHelper.RgbToByteArray(color.BackColor)));
                     xssfStyle.FillPattern = FillPattern.SolidForeground;
                     break;
             }

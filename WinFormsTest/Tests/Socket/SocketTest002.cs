@@ -84,7 +84,8 @@ namespace WinFormsTest.Tests
                 byte[] buffer = new byte[5];
                 while (!停止运行标志 && !任务中止信号)
                 {
-                    buffer.Clear();
+                    Array.Clear(buffer);
+                    //buffer.Clear();
 
                     if (等待发送队列.Count > 0)
                     {

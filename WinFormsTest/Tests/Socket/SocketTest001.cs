@@ -108,7 +108,8 @@ namespace WinFormsTest.Tests
                 byte[] buffer = new byte[5];
                 while (!stopFlag)
                 {
-                    buffer.Clear();
+                    Array.Clear(buffer);
+                    //buffer.Clear();
 
                     int count = 0;
                     try

@@ -41,6 +41,7 @@ namespace WinFormsTest.Tests
 
         private void button1_Click(object sender, EventArgs e)
         {
+            Log("事件", "重新生成");
             RecreateList();
         }
 

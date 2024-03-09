@@ -9,6 +9,19 @@ namespace Util
     public static class ColorHelper
     {
         /// <summary>
+        /// 将颜色转换为RGB数组, [0] => R; [1] => G; [2] => B
+        /// </summary>
+        /// <param name="color"></param>
+        /// <returns></returns>
+        public static byte[] RgbToByteArray(System.Drawing.Color color)
+        {
+            return new byte[]
+            {
+                color.R, color.G, color.B,
+            };
+        }
+
+        /// <summary>
         /// HSV模型转换为RGB模型
         /// </summary>
         /// <param name="color"></param>

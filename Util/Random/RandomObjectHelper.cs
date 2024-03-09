@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Util.Random
 {

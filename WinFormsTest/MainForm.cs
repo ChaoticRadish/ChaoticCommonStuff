@@ -15,7 +15,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Input;
 using Util;
 using Util.Config;
@@ -44,7 +43,7 @@ namespace WinFormsTest
         private void Test()
         {
             // 在这里放执行测试的内容
-            SetTest<Tests.SocketTest001>();
+            SetTest<Tests.DateRangeInputerTest>();
             Testing?.InitMoitorings();
             Testing?.TestContent();
 
