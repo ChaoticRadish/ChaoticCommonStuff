@@ -274,7 +274,7 @@ namespace Util.Random
         {
             ProbabilityAttribute probability = propertyInfo.GetCustomAttribute<ProbabilityAttribute>();
             return probability == null ? 
-                (config == null ? RandomValueTypeHelper.RandomBool(random) : RandomValueTypeHelper.RandomTrue(config.Value.ProbabilityTrue))
+                (config == null ? RandomValueTypeHelper.RandomBool(random) : RandomValueTypeHelper.RandomTrue(random, config.Value.ProbabilityTrue))
                 :
                 RandomValueTypeHelper.RandomTrue(random, probability.True);
         }
