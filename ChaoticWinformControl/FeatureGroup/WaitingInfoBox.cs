@@ -34,7 +34,7 @@ namespace ChaoticWinformControl.FeatureGroup
                 Refresh();
             }
         }
-        private string info;
+        private string info = string.Empty;
         /// <summary>
         /// 转圈圈的圆形数量
         /// </summary>
