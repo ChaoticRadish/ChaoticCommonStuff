@@ -161,6 +161,78 @@ namespace Util
                 }
 
             }
+            // 通过数值判断
+            if (Enum.GetUnderlyingType(type) == typeof(int))
+            {
+                if (int.TryParse(str, out int val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+            else if (Enum.GetUnderlyingType(type) == typeof(uint))
+            {
+                if (uint.TryParse(str, out uint val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+            else if (Enum.GetUnderlyingType(type) == typeof(short))
+            {
+                if (short.TryParse(str, out short val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+            else if (Enum.GetUnderlyingType(type) == typeof(ushort))
+            {
+                if (ushort.TryParse(str, out ushort val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+            else if (Enum.GetUnderlyingType(type) == typeof(long))
+            {
+                if (long.TryParse(str, out long val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+            else if (Enum.GetUnderlyingType(type) == typeof(ulong))
+            {
+                if (long.TryParse(str, out long val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+            else if (Enum.GetUnderlyingType(type) == typeof(byte))
+            {
+                if (byte.TryParse(str, out byte val))
+                {
+                    if (Enum.IsDefined(type, val))
+                    {
+                        return val;
+                    }
+                }
+            }
+
             return null;
         }
 
